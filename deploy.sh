@@ -2,7 +2,8 @@
 # Deploys Second Look to Cloud Run from the Dockerfile (built by Cloud Build).
 # Usage: GOOGLE_CLOUD_PROJECT=my-project ./deploy.sh
 # Optional: REGION (Cloud Run region), GOOGLE_CLOUD_LOCATION (Gemini location), GEMINI_MODEL,
-# DAILY_RUN_LIMIT, SERVICE.
+# DAILY_RUN_LIMIT, BQ_DATASET, FIRESTORE_COLLECTION, SERVICE.
+# Before the first deploy: create the Firestore database and seed BigQuery (see README).
 set -euo pipefail
 
 PROJECT="${GOOGLE_CLOUD_PROJECT:?Set GOOGLE_CLOUD_PROJECT to your Google Cloud project id}"
@@ -10,6 +11,8 @@ REGION="${REGION:-asia-south1}"
 GEMINI_LOCATION="${GOOGLE_CLOUD_LOCATION:-global}"
 MODEL="${GEMINI_MODEL:-gemini-3.1-flash-lite}"
 DAILY_LIMIT="${DAILY_RUN_LIMIT:-200}"
+DATASET="${BQ_DATASET:-second_look}"
+COLLECTION="${FIRESTORE_COLLECTION:-cases}"
 SERVICE="${SERVICE:-second-look}"
 SA_NAME="second-look-run"
 SA_EMAIL="${SA_NAME}@${PROJECT}.iam.gserviceaccount.com"
@@ -18,7 +21,8 @@ echo "Project: $PROJECT | Region: $REGION | Model: $MODEL ($GEMINI_LOCATION)"
 
 echo "Enabling required APIs..."
 gcloud services enable run.googleapis.com aiplatform.googleapis.com \
-  cloudbuild.googleapis.com artifactregistry.googleapis.com --project "$PROJECT"
+  cloudbuild.googleapis.com artifactregistry.googleapis.com \
+  bigquery.googleapis.com firestore.googleapis.com --project "$PROJECT"
 
 # Runtime service account: the app authenticates to Vertex AI as this account (no keys).
 if ! gcloud iam service-accounts describe "$SA_EMAIL" --project "$PROJECT" >/dev/null 2>&1; then
@@ -48,7 +52,10 @@ grant_role() {
 }
 
 echo "Granting roles to the service account..."
-grant_role roles/aiplatform.user
+grant_role roles/aiplatform.user     # Gemini on Vertex AI
+grant_role roles/datastore.user      # Firestore cases and the daily run counter
+grant_role roles/bigquery.dataViewer # read the payees table
+grant_role roles/bigquery.jobUser    # run the payee lookup query
 
 echo "Building and deploying..."
 # Cost guardrails (CLAUDE.md): small, scale-to-zero service. GEMINI_API_KEY is never set here;
@@ -65,7 +72,7 @@ gcloud run deploy "$SERVICE" \
   --timeout 60 \
   --memory 512Mi \
   --cpu 1 \
-  --set-env-vars "GOOGLE_CLOUD_PROJECT=${PROJECT},GOOGLE_CLOUD_LOCATION=${GEMINI_LOCATION},GEMINI_MODEL=${MODEL},DAILY_RUN_LIMIT=${DAILY_LIMIT}"
+  --set-env-vars "GOOGLE_CLOUD_PROJECT=${PROJECT},GOOGLE_CLOUD_LOCATION=${GEMINI_LOCATION},GEMINI_MODEL=${MODEL},DAILY_RUN_LIMIT=${DAILY_LIMIT},BQ_DATASET=${DATASET},FIRESTORE_COLLECTION=${COLLECTION}"
 
 URL=$(gcloud run services describe "$SERVICE" --project "$PROJECT" --region "$REGION" --format 'value(status.url)')
 echo "Deployed: $URL"
