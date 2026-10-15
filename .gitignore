@@ -1,0 +1,25 @@
+# dependencies
+/node_modules
+
+# next.js build output
+/.next/
+/out/
+/build
+
+# env files (only .env.example is committed)
+.env*
+!.env.example
+
+# credentials: never commit keys or service account files
+*.pem
+*.key
+*credentials*.json
+*service-account*.json
+*-sa.json
+.gcloud/
+
+# misc
+.DS_Store
+npm-debug.log*
+*.tsbuildinfo
+next-env.d.ts
