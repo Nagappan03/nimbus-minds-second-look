@@ -16,9 +16,10 @@ const EMPTY_FORM = { payeeId: "", amount: "", conversation: "", language: "en" }
 
 export default function CheckForm({ payees }) {
   const [form, setForm] = useState(EMPTY_FORM);
-  const [status, setStatus] = useState("idle"); // idle | loading | done | error
+  const [status, setStatus] = useState("idle"); // idle | loading | done | error | limited
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const [limited, setLimited] = useState(null); // { message, examples } when a rate limit is hit
 
   const update = (field) => (e) => setForm({ ...form, [field]: e.target.value });
 
@@ -39,6 +40,11 @@ export default function CheckForm({ payees }) {
         body: JSON.stringify(form),
       });
       const data = await res.json().catch(() => ({ error: "The server sent an unreadable reply." }));
+      if (res.status === 429 && data.examples) {
+        setLimited({ message: data.error, examples: data.examples });
+        setStatus("limited");
+        return;
+      }
       if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
       setResult(data);
       setStatus("done");
@@ -47,6 +53,11 @@ export default function CheckForm({ payees }) {
       setError(err instanceof TypeError ? "Could not reach the server. Check your connection." : err.message);
       setStatus("error");
     }
+  }
+
+  function showExample(example) {
+    setResult({ ...example, saved_example: true, notice: limited?.message });
+    setStatus("done");
   }
 
   const loading = status === "loading";
@@ -120,6 +131,19 @@ export default function CheckForm({ payees }) {
           <button type="button" onClick={runCheck}>
             Try again
           </button>
+        </div>
+      )}
+
+      {status === "limited" && limited && (
+        <div className={styles.notice} role="status">
+          <p>{limited.message}</p>
+          <div className={styles.demos}>
+            {limited.examples.map((ex) => (
+              <button key={ex.id} type="button" onClick={() => showExample(ex)}>
+                See example: {ex.label}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 

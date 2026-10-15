@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "mask-demo": "node scripts/mask-demo.js"
+    "mask-demo": "node scripts/mask-demo.js",
+    "save-demos": "node --env-file=.env.local scripts/save-demo-results.js"
   },
   "dependencies": {
     "@google/genai": "^2.30.0",

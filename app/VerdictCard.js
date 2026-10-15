@@ -17,6 +17,11 @@ export default function VerdictCard({ result }) {
 
   return (
     <section className={`${styles.verdict} ${v.className}`} aria-live="polite">
+      {result.saved_example && (
+        <p className={styles.savedNote}>
+          {result.notice} <strong>This is a saved example, not a live check of your conversation.</strong>
+        </p>
+      )}
       <div className={styles.verdictHead}>
         <h2>{v.label}</h2>
         <span className={styles.score} title="Risk score from 0 (safe) to 100">
@@ -25,6 +30,9 @@ export default function VerdictCard({ result }) {
       </div>
 
       <p className={styles.explanation}>{decision.explanation}</p>
+      {result.truncated && (
+        <p className={styles.footnote}>The conversation was long, so only the first 6,000 characters were checked.</p>
+      )}
 
       {decision.reasons.length > 0 && (
         <>
@@ -56,7 +64,8 @@ export default function VerdictCard({ result }) {
 
       <p className={styles.footnote}>
         Second Look gives advice only. If a payment is held, a member of bank staff reviews it before anything is
-        blocked. Checked in {(timings_ms.total / 1000).toFixed(1)} s.
+        blocked.{" "}
+        {result.saved_example ? "Saved example result." : `Checked in ${(timings_ms.total / 1000).toFixed(1)} s.`}
       </p>
     </section>
   );

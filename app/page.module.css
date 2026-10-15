@@ -261,3 +261,29 @@
   font-size: 0.78rem;
   color: var(--muted);
 }
+
+/* Rate-limit notice and saved-example banner */
+.notice {
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #fdf4e3;
+  border: 1px solid #efd9a8;
+}
+
+.notice p {
+  margin: 0 0 10px;
+}
+
+.notice .demos {
+  margin-bottom: 0;
+}
+
+.savedNote {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f7f8fa;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
