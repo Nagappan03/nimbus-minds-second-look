@@ -27,10 +27,28 @@ if ! gcloud iam service-accounts describe "$SA_EMAIL" --project "$PROJECT" >/dev
     --display-name "Second Look Cloud Run runtime"
 fi
 
-echo "Granting Vertex AI access to the service account..."
-gcloud projects add-iam-policy-binding "$PROJECT" \
-  --member "serviceAccount:${SA_EMAIL}" --role roles/aiplatform.user \
-  --condition None --quiet >/dev/null
+# A new service account can take a few seconds to become usable, so a grant
+# may fail with "does not exist". Retry up to 5 times, 10 seconds apart.
+grant_role() {
+  local role="$1"
+  for attempt in 1 2 3 4 5; do
+    if gcloud projects add-iam-policy-binding "$PROJECT" \
+      --member "serviceAccount:${SA_EMAIL}" --role "$role" \
+      --condition None --quiet >/dev/null 2>&1; then
+      echo "  granted $role"
+      return 0
+    fi
+    if [ "$attempt" -lt 5 ]; then
+      echo "  $role not granted yet (attempt $attempt of 5), waiting 10 s for the service account..."
+      sleep 10
+    fi
+  done
+  echo "Could not grant $role to $SA_EMAIL after 5 attempts." >&2
+  return 1
+}
+
+echo "Granting roles to the service account..."
+grant_role roles/aiplatform.user
 
 echo "Building and deploying..."
 # Cost guardrails (CLAUDE.md): small, scale-to-zero service. GEMINI_API_KEY is never set here;
