@@ -1,0 +1,72 @@
+[
+  {
+    "payee_id": "PAYEE-1001",
+    "name": "Meera Iyer (landlord)",
+    "account_age_days": 2920,
+    "prior_reports": 0,
+    "flags": ["paid_by_customer_before"]
+  },
+  {
+    "payee_id": "PAYEE-1002",
+    "name": "Sharma Electricals Pvt Ltd",
+    "account_age_days": 1825,
+    "prior_reports": 0,
+    "flags": ["registered_business", "paid_by_customer_before"]
+  },
+  {
+    "payee_id": "PAYEE-1003",
+    "name": "Arjun Menon",
+    "account_age_days": 1460,
+    "prior_reports": 0,
+    "flags": []
+  },
+  {
+    "payee_id": "PAYEE-1004",
+    "name": "Safe Custody Verification Acct",
+    "account_age_days": 9,
+    "prior_reports": 4,
+    "flags": ["new_account", "many_unrelated_senders_this_week", "name_suggests_official_body"]
+  },
+  {
+    "payee_id": "PAYEE-1005",
+    "name": "Alpha Wealth Club",
+    "account_age_days": 23,
+    "prior_reports": 2,
+    "flags": ["new_account", "rapid_in_and_out_transfers", "not_a_registered_broker"]
+  },
+  {
+    "payee_id": "PAYEE-1006",
+    "name": "Rahul K",
+    "account_age_days": 41,
+    "prior_reports": 1,
+    "flags": ["new_account", "rapid_in_and_out_transfers"]
+  },
+  {
+    "payee_id": "PAYEE-1007",
+    "name": "Budi Santoso",
+    "account_age_days": 2190,
+    "prior_reports": 0,
+    "flags": []
+  },
+  {
+    "payee_id": "PAYEE-1008",
+    "name": "Quick Loan Processing Desk",
+    "account_age_days": 15,
+    "prior_reports": 3,
+    "flags": ["new_account", "many_unrelated_senders_this_week"]
+  },
+  {
+    "payee_id": "PAYEE-1009",
+    "name": "Lakshmi Textiles",
+    "account_age_days": 3650,
+    "prior_reports": 0,
+    "flags": ["registered_business"]
+  },
+  {
+    "payee_id": "PAYEE-1010",
+    "name": "Priya S",
+    "account_age_days": 120,
+    "prior_reports": 0,
+    "flags": ["first_payment_from_customer"]
+  }
+]
