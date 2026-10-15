@@ -1,8 +1,7 @@
+import { listPayees } from "@/lib/pipeline/payeeRisk";
+import CheckForm from "./CheckForm";
+
+// Server component: only payee ids and names reach the browser, never risk data.
 export default function Home() {
-  return (
-    <main style={{ padding: 16 }}>
-      <h1>Second Look</h1>
-      <p>Check before sending.</p>
-    </main>
-  );
+  return <CheckForm payees={listPayees()} />;
 }

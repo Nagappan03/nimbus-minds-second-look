@@ -1,0 +1,263 @@
+.page {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.header h1 {
+  margin: 0 0 4px;
+  font-size: 1.6rem;
+}
+
+.header p {
+  margin: 0 0 16px;
+  color: var(--muted);
+}
+
+/* Demo buttons */
+.demos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.demos button {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.demos button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+/* Form */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.card label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.card input,
+.card textarea,
+.card select {
+  font: inherit;
+  font-weight: 400;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text);
+}
+
+.card textarea {
+  resize: vertical;
+  font-size: 0.92rem;
+}
+
+.card input:focus,
+.card textarea:focus,
+.card select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.primary {
+  font: inherit;
+  font-weight: 600;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+
+.primary:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.privacy {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* Loading and error */
+.loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  color: var(--muted);
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error {
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #fdf0ef;
+  border: 1px solid #f0c8c4;
+  color: #7a2a22;
+}
+
+.error p {
+  margin: 0 0 10px;
+}
+
+.error button {
+  font: inherit;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid #c9574b;
+  background: #fff;
+  color: #7a2a22;
+  cursor: pointer;
+}
+
+/* Verdict card */
+.verdict {
+  margin-top: 20px;
+  padding: 18px;
+  border-radius: 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-top: 6px solid var(--tone);
+}
+
+.proceed {
+  --tone: #2e8b57;
+  --tone-bg: #eaf6ef;
+}
+
+.careful {
+  --tone: #d08a12;
+  --tone-bg: #fdf4e3;
+}
+
+.hold {
+  --tone: #c73e32;
+  --tone-bg: #fcecea;
+}
+
+.verdictHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.verdictHead h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--tone);
+}
+
+.score {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--tone-bg);
+  color: var(--tone);
+}
+
+.explanation {
+  margin: 12px 0 4px;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--tone-bg);
+}
+
+.verdict h3 {
+  margin: 16px 0 8px;
+  font-size: 0.95rem;
+}
+
+.reasons {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reasons p {
+  margin: 0 0 4px;
+}
+
+.reasons blockquote {
+  margin: 0;
+  padding: 6px 10px;
+  border-left: 3px solid var(--tone);
+  background: #f7f8fa;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.source {
+  display: inline-block;
+  margin-right: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text);
+}
+
+.unverified {
+  font-size: 0.8rem;
+}
+
+.steps {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.steps li {
+  margin-bottom: 4px;
+}
+
+.footnote {
+  margin: 16px 0 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
