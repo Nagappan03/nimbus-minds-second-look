@@ -6,7 +6,7 @@ set -euo pipefail
 
 PROJECT="${GOOGLE_CLOUD_PROJECT:?Set GOOGLE_CLOUD_PROJECT to your Google Cloud project id}"
 REGION="${REGION:-asia-south1}"
-GEMINI_LOCATION="${GOOGLE_CLOUD_LOCATION:-global}"
+GEMINI_LOCATION="${GOOGLE_CLOUD_LOCATION:-asia-south1}"
 MODEL="${GEMINI_MODEL:-gemini-3.5-flash}"
 SERVICE="${SERVICE:-second-look}"
 SA_NAME="second-look-run"
@@ -38,6 +38,7 @@ gcloud run deploy "$SERVICE" \
   --service-account "$SA_EMAIL" \
   --allow-unauthenticated \
   --memory 512Mi \
+  --max-instances 3 \
   --timeout 60 \
   --set-env-vars "GOOGLE_CLOUD_PROJECT=${PROJECT},GOOGLE_CLOUD_LOCATION=${GEMINI_LOCATION},GEMINI_MODEL=${MODEL}"
 

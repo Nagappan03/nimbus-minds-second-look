@@ -8,6 +8,9 @@ const VERDICTS = {
 
 const SOURCE_LABELS = { conversation: "From the chat", payee: "Payee record" };
 
+// Payee signals arrive as ids like "new_account"; show them as plain words.
+const evidenceText = (r) => (r.source === "payee" ? r.evidence_quote.replace(/_/g, " ") : r.evidence_quote);
+
 export default function VerdictCard({ result }) {
   const { decision, timings_ms } = result;
   const v = VERDICTS[decision.verdict];
@@ -31,7 +34,7 @@ export default function VerdictCard({ result }) {
               <li key={i}>
                 <p>{r.text}</p>
                 <blockquote>
-                  <span className={styles.source}>{SOURCE_LABELS[r.source]}</span> “{r.evidence_quote}”
+                  <span className={styles.source}>{SOURCE_LABELS[r.source]}</span> “{evidenceText(r)}”
                   {!r.quote_verified && <em className={styles.unverified}> (wording not found exactly in the chat)</em>}
                 </blockquote>
               </li>

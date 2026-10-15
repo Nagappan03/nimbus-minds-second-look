@@ -32,12 +32,12 @@ Next.js API route (Cloud Run)
         3. decide.js         Gemini: verdict, score, reasons with evidence, next steps, explanation
 ```
 
-- Every Gemini call uses structured JSON output with a schema (`lib/gemini.js`). Results are validated, and a malformed response is retried once.
+- Every Gemini call uses structured JSON output with a schema (`lib/gemini.js`). Results are validated, a malformed response is retried once, and each call times out after 25 s.
 - Conversation text is masked before it is sent to Gemini.
 - Decision guardrails: quotes are checked against the conversation (`quote_verified`), and a payee rated high risk never gets **Proceed**.
 - Each step's duration is logged as one JSON line (`check_complete`) and returned as `timings_ms`.
 
-**Model:** `gemini-3.5-flash` on Vertex AI, called through the Google Gen AI SDK (`@google/genai`) in Vertex mode (`enterprise: true`) with the `global` location. The model is set by the `GEMINI_MODEL` env var.
+**Model:** `gemini-3.5-flash` on Vertex AI, called through the Google Gen AI SDK (`@google/genai`) in Vertex mode (`enterprise: true`) in `asia-south1`, the same region as the Cloud Run service. (The model is not offered in `us-central1`, and the `global` endpoint was slow and unreliable during testing.) The model is set by the `GEMINI_MODEL` env var.
 
 ## Run locally
 
@@ -59,7 +59,7 @@ Edit `.env.local`:
 
 ```
 GOOGLE_CLOUD_PROJECT=YOUR_PROJECT_ID
-GOOGLE_CLOUD_LOCATION=global
+GOOGLE_CLOUD_LOCATION=asia-south1
 GEMINI_MODEL=gemini-3.5-flash
 ```
 
@@ -85,7 +85,7 @@ Other commands:
 
 ## Deploy to Cloud Run
 
-`deploy.sh` enables the required APIs and creates a runtime service account (`second-look-run`) with the Vertex AI User role. It then builds the Dockerfile with Cloud Build, deploys to Cloud Run with public access and sets the env vars.
+`deploy.sh` enables the required APIs and creates a runtime service account (`second-look-run`) with the Vertex AI User role. It then builds the Dockerfile with Cloud Build, deploys to Cloud Run (`asia-south1`, at most 3 instances) with public access and sets the env vars.
 
 ```bash
 gcloud auth login
@@ -99,7 +99,7 @@ gcloud config set project YOUR_PROJECT_ID
 GOOGLE_CLOUD_PROJECT=YOUR_PROJECT_ID ./deploy.sh
 ```
 
-Optional overrides: `REGION` (default `asia-south1`), `GOOGLE_CLOUD_LOCATION` (default `global`), `GEMINI_MODEL` (default `gemini-3.5-flash`), `SERVICE` (default `second-look`).
+Optional overrides: `REGION` (default `asia-south1`), `GOOGLE_CLOUD_LOCATION` (default `asia-south1`), `GEMINI_MODEL` (default `gemini-3.5-flash`), `SERVICE` (default `second-look`).
 
 The script prints the service URL. Check that the service is up:
 
