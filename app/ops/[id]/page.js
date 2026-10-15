@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import styles from "../ops.module.css";
@@ -63,6 +63,7 @@ export default function CaseDetail() {
       </section>
       <Timings timings={c.timings_ms} tokens={c.tokens} />
       <DecisionPanel c={c} onDecided={(updated) => setState({ status: "done", data: updated, error: null })} />
+      <SummaryPanel caseId={c.id} />
     </article>
   );
 }
@@ -287,6 +288,72 @@ function DecisionPanel({ c, onDecided }) {
             </p>
           )}
         </>
+      )}
+    </section>
+  );
+}
+
+function SummaryPanel({ caseId }) {
+  const [draft, setDraft] = useState("");
+  const [status, setStatus] = useState("idle"); // idle | loading | done | error
+  const [error, setError] = useState(null);
+  const [copied, setCopied] = useState(false);
+  const boxRef = useRef(null);
+
+  async function generate() {
+    setStatus("loading");
+    setError(null);
+    try {
+      const res = await fetch(`/api/cases/${caseId}/summary`, { method: "POST" });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || `Request failed (${res.status})`);
+      setDraft(body.summary);
+      setStatus("done");
+    } catch (err) {
+      setError(err.message);
+      setStatus("error");
+    }
+  }
+
+  async function copy() {
+    setError(null);
+    try {
+      await navigator.clipboard.writeText(draft);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard access can be blocked (permissions, embedded browsers): select the text instead.
+      boxRef.current?.select();
+      setError("Copying is blocked in this browser. The text is selected: press Ctrl+C (Cmd+C on a Mac).");
+    }
+  }
+
+  return (
+    <section className={styles.section}>
+      <h2>Case summary</h2>
+      <p className={styles.muted}>A short AI draft in suspicious-activity-report style. Review and edit it before use; it is not saved.</p>
+      {status !== "done" && (
+        <button className={styles.secondary} onClick={generate} disabled={status === "loading"}>
+          {status === "loading" ? "Drafting…" : "Draft case summary"}
+        </button>
+      )}
+      {status === "done" && (
+        <>
+          <textarea ref={boxRef} className={styles.summaryBox} rows={12} value={draft} onChange={(e) => setDraft(e.target.value)} />
+          <div className={styles.actions}>
+            <button className={styles.secondary} onClick={copy}>
+              {copied ? "Copied" : "Copy"}
+            </button>
+            <button className={styles.secondary} onClick={generate}>
+              Draft again
+            </button>
+          </div>
+        </>
+      )}
+      {error && (
+        <p className={styles.inlineError} role="alert">
+          {error}
+        </p>
       )}
     </section>
   );

@@ -458,3 +458,15 @@
   margin: 10px 0 0;
   color: #b2362b;
 }
+
+/* Case summary draft */
+.summaryBox {
+  width: 100%;
+  font: inherit;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  resize: vertical;
+}
