@@ -85,7 +85,7 @@ export default function CheckForm({ payees }) {
           <datalist id="payee-list">
             {payees.map((p) => (
               <option key={p.payee_id} value={p.payee_id}>
-                {p.name}
+                {p.display_name}
               </option>
             ))}
           </datalist>
