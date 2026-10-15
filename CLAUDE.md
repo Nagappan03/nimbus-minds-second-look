@@ -10,7 +10,7 @@ The builder is Nags, a data engineer who knows React, Node.js and BigQuery. Keep
 ## Hard rules
 1. This is a fresh project. Write all code and data from scratch. Never copy code, data or config from any employer or client.
 2. All data is synthetic. No real personal data anywhere in the repo.
-3. No secrets in the repo. Authenticate to Google Cloud with Application Default Credentials (gcloud login locally, the service account on Cloud Run). `.env.local` is git-ignored; `.env.example` lists variable names only.
+3. No secrets in the repo. On Cloud Run, authenticate with the service account (no keys). Locally, use `GEMINI_API_KEY` from `.env.local` when it is set (see Cost guardrails), otherwise Application Default Credentials (gcloud login). `.env.local` is git-ignored; `.env.example` lists variable names only.
 4. Everything (code comments, docs, UI copy defaults, README) is in English. The UI can show Hindi, Tamil and Bahasa Indonesia output from the model.
 5. The app must be built primarily on Google Cloud and use Gemini, and be deployed on Cloud Run.
 6. Commit in small steps with clear messages. Push to the public GitHub repo often.
@@ -18,13 +18,25 @@ The builder is Nags, a data engineer who knows React, Node.js and BigQuery. Keep
 ## Stack
 - Next.js (App Router), JavaScript only (no TypeScript), plain CSS or CSS modules (no Tailwind, no UI library, no chart library)
 - Node.js API routes inside Next.js
-- Gemini on Vertex AI via the Google Gen AI SDK for JavaScript (`@google/genai`, Vertex mode). Check the official docs for current model IDs and SDK usage; do not guess from memory. Model ID comes from the `GEMINI_MODEL` env var.
+- Gemini via the Google Gen AI SDK for JavaScript (`@google/genai`): Vertex AI mode on Cloud Run and for final evaluation runs, the Gemini API with a free-tier key for local development. Check the official docs for current model IDs and SDK usage; do not guess from memory. Model ID comes from the `GEMINI_MODEL` env var.
 - BigQuery (`@google-cloud/bigquery`) for the synthetic payee risk table
 - Firestore (`@google-cloud/firestore`) for saved cases
 - Cloud Run for hosting, deployed from a Dockerfile (Next.js standalone output)
 
 ## Environment variables (names only)
-`GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION`, `GEMINI_MODEL`, `BQ_DATASET`, `FIRESTORE_COLLECTION`
+`GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION`, `GEMINI_MODEL`, `GEMINI_API_KEY` (local only), `DAILY_RUN_LIMIT`, `BQ_DATASET`, `FIRESTORE_COLLECTION`
+
+## Cost guardrails
+These rules apply to all code and to every stage. They override the earlier "no API key" rule for local development.
+
+1. **Model:** use the cheapest Gemini model that gives acceptable results (Flash-class or lighter). Never use a Pro model without asking Nags. When proposing a model, state its ID and its price per million input and output tokens from Google's official pricing page. Current choice: `gemini-3.1-flash-lite` on the `global` endpoint, $0.25 input / $1.50 output per 1M tokens (Vertex AI Standard, checked 2026-10-15; regional endpoints cost 10% more).
+2. **Per call:** every Gemini call sets `maxOutputTokens` (800 by default, lower where possible) and a low temperature. Truncate conversation text to 6,000 characters, resize images to 1024px at most on the longest side, and limit audio to 60 seconds. Limits live in `lib/limits.js`.
+3. **Rate limits on `/api/check`:** at most `DAILY_RUN_LIMIT` (default 200) pipeline runs per day and 5 per minute per IP. When a limit is hit, return a friendly message and serve the saved example results for the three demo scenarios (`data/demo-results.json`) instead of calling Gemini. Stage 1 uses an in-memory counter; Stage 2 moves it to Firestore so the limit is global.
+4. **Token logging:** log token usage (input, output, thinking, estimated cost) per request and keep a running total in the server log.
+5. **Cloud Run flags:** `--max-instances 2 --min-instances 0 --concurrency 8 --timeout 60 --memory 512Mi --cpu 1`.
+6. **Data services:** every BigQuery query sets a 100 MB maximum bytes billed. Every Firestore read has a limit.
+7. **Evaluation scripts:** `scripts/eval.js` and `scripts/redteam.js` take `--limit N` (default 20), print a token estimate before running, ask for confirmation above 40 scenarios, and cache results so unchanged scenarios are not re-run.
+8. **Local development:** use `GEMINI_API_KEY` from `.env.local` (free tier) when it is set. Use Vertex AI only on Cloud Run and for final evaluation runs (run those with `GEMINI_API_KEY` empty). Never set `GEMINI_API_KEY` on Cloud Run.
 
 ## Folder layout
 ```
