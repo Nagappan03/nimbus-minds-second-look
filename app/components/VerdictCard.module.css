@@ -1,0 +1,119 @@
+/* Verdict card */
+.verdict {
+  margin-top: 20px;
+  padding: 18px;
+  border-radius: 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-top: 6px solid var(--tone);
+}
+
+.proceed {
+  --tone: #2e8b57;
+  --tone-bg: #eaf6ef;
+}
+
+.careful {
+  --tone: #d08a12;
+  --tone-bg: #fdf4e3;
+}
+
+.hold {
+  --tone: #c73e32;
+  --tone-bg: #fcecea;
+}
+
+.verdictHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.verdictHead h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--tone);
+}
+
+.score {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--tone-bg);
+  color: var(--tone);
+}
+
+.explanation {
+  margin: 12px 0 4px;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--tone-bg);
+}
+
+.verdict h3 {
+  margin: 16px 0 8px;
+  font-size: 0.95rem;
+}
+
+.reasons {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reasons p {
+  margin: 0 0 4px;
+}
+
+.reasons blockquote {
+  margin: 0;
+  padding: 6px 10px;
+  border-left: 3px solid var(--tone);
+  background: #f7f8fa;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.source {
+  display: inline-block;
+  margin-right: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text);
+}
+
+.unverified {
+  font-size: 0.8rem;
+}
+
+.steps {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.steps li {
+  margin-bottom: 4px;
+}
+
+.footnote {
+  margin: 16px 0 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.savedNote {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f7f8fa;
+  font-size: 0.85rem;
+  color: var(--muted);
+}

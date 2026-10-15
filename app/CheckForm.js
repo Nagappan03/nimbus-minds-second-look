@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import styles from "./page.module.css";
 import { DEMO_SCENARIOS } from "@/lib/demoScenarios";
-import VerdictCard from "./VerdictCard";
+import VerdictCard from "./components/VerdictCard";
+import { labelsFor } from "@/lib/labels";
 
 const LANGUAGE_OPTIONS = [
   { code: "en", label: "English" },
@@ -129,7 +131,7 @@ export default function CheckForm({ payees }) {
         <div className={styles.error} role="alert">
           <p>{error}</p>
           <button type="button" onClick={runCheck}>
-            Try again
+            {labelsFor(form.language).tryAgain}
           </button>
         </div>
       )}
@@ -148,6 +150,10 @@ export default function CheckForm({ payees }) {
       )}
 
       {status === "done" && result && <VerdictCard result={result} />}
+
+      <footer className={styles.footer}>
+        <Link href="/ops">Bank staff view</Link>
+      </footer>
     </main>
   );
 }
