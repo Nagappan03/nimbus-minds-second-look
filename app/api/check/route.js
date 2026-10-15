@@ -3,6 +3,7 @@ import { LANGUAGES } from "@/lib/pipeline/decide";
 import { GeminiError } from "@/lib/gemini";
 import { takeRun, clientIp } from "@/lib/rateLimit";
 import { findDemoResult, listDemoResults } from "@/lib/demoResults";
+import { readJsonBody } from "@/lib/http";
 
 const LIMIT_MESSAGES = {
   daily: "Second Look has reached today's limit of live checks. Please try again tomorrow. You can still see saved example results.",
@@ -32,14 +33,10 @@ function limitedResponse(reason, conversation) {
 }
 
 export async function POST(request) {
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Request body must be JSON." }, { status: 400 });
-  }
+  const body = await readJsonBody(request);
+  if (body.error) return Response.json({ error: body.error }, { status: body.status });
 
-  const { error, input } = validate(body);
+  const { error, input } = validate(body.data);
   if (error) return Response.json({ error }, { status: 400 });
 
   const ip = clientIp(request);
