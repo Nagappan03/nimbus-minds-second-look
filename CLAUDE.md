@@ -85,8 +85,8 @@ Rules for the Decision step: every reason must quote evidence from the conversat
 
 ## Build stages
 1. Text-only vertical slice: customer page, /api/check, three Gemini steps, mocked payee data, deployed on Cloud Run
-2. BigQuery payee risk, Firestore cases, ops console, multilingual output, screenshot and voice input
-3. Evaluation harness, red-team script, evaluation page, UI polish
+2. BigQuery payee risk, Firestore cases, ops console, multilingual output
+3. Evaluation harness and evaluation page, screenshot input, red-team script, UI polish; voice note input only if time allows
 4. Freeze: README, clean-browser test, final deploy
 
 Do only the stage you are asked to do. At the end of each stage, run the app, test it, summarise what works and what does not, and list anything you left out.
