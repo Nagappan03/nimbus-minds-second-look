@@ -304,7 +304,11 @@ function SummaryPanel({ caseId }) {
     setStatus("loading");
     setError(null);
     try {
-      const res = await fetch(`/api/cases/${caseId}/summary`, { method: "POST" });
+      const res = await fetch(`/api/cases/${caseId}/summary`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+      });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || `Request failed (${res.status})`);
       setDraft(body.summary);

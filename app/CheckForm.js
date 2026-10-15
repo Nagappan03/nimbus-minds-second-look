@@ -117,6 +117,9 @@ export default function CheckForm({ payees }) {
         <button className={styles.primary} type="submit" disabled={loading}>
           {loading ? "Checking…" : "Check before sending"}
         </button>
+        <p className={styles.demoNotice}>
+          Demo only. Do not enter real personal or bank details. Checks you submit appear in the demo bank console.
+        </p>
         <p className={styles.privacy}>Account numbers, phone numbers, emails and codes are masked before review.</p>
       </form>
 

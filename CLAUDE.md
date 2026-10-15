@@ -40,26 +40,47 @@ These rules apply to all code and to every stage. They override the earlier "no 
 
 ## Folder layout
 ```
-app/page.js                  customer "Check before sending" flow
+app/page.js                  customer "Check before sending" page (server: passes payee ids and names only)
+app/CheckForm.js             customer form, demo buttons, loading/error/limit states
+app/components/VerdictCard.js  localised verdict card (customer page and ops case page)
+app/ops/layout.js            ops shell with the "Demo console, synthetic data only" banner
 app/ops/page.js              ops case queue
-app/ops/[id]/page.js         case detail and decision buttons
+app/ops/[id]/page.js         case detail, decision buttons and case summary draft
+app/ops/format.js            time and amount formatting for the ops pages
 app/evaluation/page.js       evaluation results page (reads data/eval-results.json)
 app/api/check/route.js       POST: run the pipeline, save the case, return the verdict
 app/api/cases/route.js       GET: list cases
 app/api/cases/[id]/route.js  GET one case, PATCH status (confirm hold / release)
+app/api/cases/[id]/summary/route.js  POST: Gemini draft of a case summary (counts towards run limits)
 app/api/health/route.js      GET: ok
-lib/gemini.js                client setup and generateJson(prompt, schema, parts) helper with retry
-lib/bigquery.js, lib/firestore.js
+lib/gemini.js                client setup, generateJson(prompt, schema, parts, options) with retry, usage logging
+lib/usage.js                 token counts, cost estimate and running total
+lib/limits.js                size limits and rate limits (cost guardrails)
+lib/rateLimit.js             per-IP per-minute limit (memory) and global daily limit (Firestore)
+lib/http.js                  readJsonBody with the 50 KB limit
+lib/bigquery.js              payee lookup (100 MB max billed, 5 s timeout)
+lib/firestore.js             cases, reviewer decisions, daily run counter
+lib/labels.js                verdict card text in four languages; ops labels
+lib/highlight.js             highlights quoted evidence in the conversation
+lib/caseSummary.js           case summary prompt and call
+lib/demoScenarios.js         the three demo conversations
+lib/demoResults.js           saved demo results served when a limit is hit
 lib/pipeline/mask.js         mask account/card numbers, phones, emails, OTP-like codes
 lib/pipeline/evidenceReader.js
-lib/pipeline/payeeRisk.js
+lib/pipeline/payeeRisk.js    BigQuery lookup with local fallback
 lib/pipeline/patternMatcher.js
 lib/pipeline/decide.js
 lib/pipeline/runCheck.js     orchestrates the steps; independent steps run with Promise.all
-data/typologies.json         about 12 scam types
+data/typologies.json         12 scam types
+data/payees-seed.json        300 synthetic payees (BigQuery seed and fallback)
+data/demo-results.json       saved demo results (npm run save-demos)
 data/scenarios.json          about 150 labelled scenarios
 data/eval-results.json       written by scripts/eval.js
-scripts/eval.js, scripts/redteam.js, scripts/seed-bigquery.js
+scripts/eval.js, scripts/redteam.js
+scripts/seed-bigquery.js     npm run seed
+scripts/generate-payees.js   regenerates data/payees-seed.json
+scripts/save-demo-results.js npm run save-demos
+scripts/mask-demo.js         npm run mask-demo
 Dockerfile, deploy.sh, README.md, .env.example
 ```
 

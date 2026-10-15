@@ -1,11 +1,16 @@
 import { getCase } from "@/lib/firestore";
 import { draftCaseSummary } from "@/lib/caseSummary";
 import { takeRun, clientIp } from "@/lib/rateLimit";
+import { readJsonBody } from "@/lib/http";
 
-// POST: draft a short SAR-style summary of the case with Gemini. Not saved.
-// It is a Gemini call, so it counts towards the same run limits as /api/check.
+// POST {}: draft a short SAR-style summary of the case with Gemini. Not saved.
+// It is a Gemini call, so it counts towards the same run limits as /api/check:
+// the per-IP per-minute limit and the global Firestore daily counter.
 export async function POST(request, { params }) {
   const { id } = await params;
+  // Same 50 KB body limit as the other routes, checked before anything else.
+  const body = await readJsonBody(request);
+  if (body.error) return Response.json({ error: body.error }, { status: body.status });
 
   let found;
   try {

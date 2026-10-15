@@ -98,6 +98,15 @@
   cursor: progress;
 }
 
+.demoNotice {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #fdf4e3;
+  font-size: 0.82rem;
+  color: #7a5a00;
+}
+
 .privacy {
   margin: 0;
   font-size: 0.8rem;
