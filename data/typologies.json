@@ -1,0 +1,158 @@
+[
+  {
+    "id": "authority_impersonation",
+    "name": "Impersonation of an authority or bank officer",
+    "description": "Someone claims to be from the police, a tax office, a regulator or the bank's fraud team and says the customer must pay or move money to stay out of trouble.",
+    "signals": [
+      "Claims to be police, customs, tax, a regulator or a bank officer",
+      "Threat of arrest, a frozen account or legal action",
+      "Asks to move money to a 'safe' or 'verification' account",
+      "Tells the customer to keep the call secret or stay on the line",
+      "Asks for an OTP, PIN or card details"
+    ],
+    "customer_question": "Would a real officer ask me to send money to a personal account, or could I call the official number myself and check?"
+  },
+  {
+    "id": "investment_group",
+    "name": "Fake investment group",
+    "description": "A chat group or 'mentor' promises high, fast, guaranteed returns from trading, crypto or IPO allotments, often showing screenshots of other members' profits.",
+    "signals": [
+      "Guaranteed or very high returns in days or weeks",
+      "Group chat full of members posting profit screenshots",
+      "A mentor, professor or 'VIP analyst' giving tips",
+      "Pressure to deposit more to unlock withdrawals",
+      "Payment to an individual's account instead of a regulated broker"
+    ],
+    "customer_question": "Is this platform registered with the market regulator, and can I withdraw a small amount before I put in more?"
+  },
+  {
+    "id": "romance",
+    "name": "Romance or friendship scam",
+    "description": "Someone met online builds a close relationship over weeks, never meets in person, then asks for money for an emergency, travel, customs or an investment.",
+    "signals": [
+      "Relationship formed online and moved quickly to private chat",
+      "Always has a reason not to video call or meet",
+      "Sudden emergency, medical bill, visa or customs fee",
+      "Asks for secrecy from family and friends",
+      "Promises to repay once a parcel or inheritance arrives"
+    ],
+    "customer_question": "Have I ever seen this person on a live video call, and would I still send this if a friend asked me to check first?"
+  },
+  {
+    "id": "task_job",
+    "name": "Task-for-pay job offer",
+    "description": "A part-time job pays small amounts for simple tasks like liking videos or rating hotels, then asks the worker to pre-pay for 'premium tasks' to earn more.",
+    "signals": [
+      "Unsolicited job offer on a messaging app",
+      "Easy online tasks like likes, reviews or ratings",
+      "Small early payouts to build trust",
+      "Asks the worker to deposit money to unlock higher-paying tasks",
+      "Says earnings are frozen until another payment is made"
+    ],
+    "customer_question": "Why would a real employer ask me to pay them before I can get paid?"
+  },
+  {
+    "id": "invoice_redirect",
+    "name": "Fake invoice or changed bank details",
+    "description": "A message that looks like it is from a known supplier, landlord or contractor says their bank account has changed and asks for payment to the new account.",
+    "signals": [
+      "Notice that bank details have 'recently changed'",
+      "Email or chat from a slightly different address or number",
+      "Urgency about an overdue invoice",
+      "New payee name does not match the business name",
+      "Asks not to call because they are 'in a meeting' or 'travelling'"
+    ],
+    "customer_question": "Have I confirmed the new account by calling the supplier on a number I already had?"
+  },
+  {
+    "id": "lottery_prize",
+    "name": "Lottery or prize fee",
+    "description": "The customer is told they won a prize, lucky draw or lottery they never entered and must pay a tax, processing or delivery fee to claim it.",
+    "signals": [
+      "Prize or lottery the customer never entered",
+      "Fee, tax or GST must be paid before release",
+      "Official-looking certificate or logo",
+      "Deadline to claim",
+      "Payment to a personal account or e-wallet"
+    ],
+    "customer_question": "Did I actually enter this draw, and why would a real prize need me to pay first?"
+  },
+  {
+    "id": "relative_distress",
+    "name": "Relative or friend in distress",
+    "description": "A message from a new number claims to be a child, relative or friend who lost their phone or is in trouble and urgently needs money.",
+    "signals": [
+      "Message from a new or unknown number claiming to be family",
+      "'Lost my phone' or 'this is my new number'",
+      "Urgent need: hospital, accident, police, rent",
+      "Asks not to call because they cannot talk right now",
+      "Payment to someone else's account"
+    ],
+    "customer_question": "Have I called this person on their old number or spoken to them by voice to confirm it is really them?"
+  },
+  {
+    "id": "parcel_customs",
+    "name": "Parcel or customs fee",
+    "description": "A courier or customs message says a parcel is held and a small fee, duty or address update payment is needed, or that a parcel in the customer's name contains illegal items.",
+    "signals": [
+      "Held parcel the customer was not expecting",
+      "Small redelivery, duty or address fee",
+      "Link to a payment page that is not the courier's site",
+      "Claim that a parcel in their name contains illegal goods",
+      "Transfer to 'clear' the case or customs"
+    ],
+    "customer_question": "Was I expecting this parcel, and does the tracking number work on the courier's official website?"
+  },
+  {
+    "id": "loan_fee",
+    "name": "Loan processing fee",
+    "description": "An easy loan is approved with no checks, but the borrower must pay a processing, insurance or GST fee before the money is released.",
+    "signals": [
+      "Instant approval without credit checks",
+      "Upfront processing, insurance or file fee",
+      "Lender not a known bank or registered lender",
+      "Fee paid to an individual's account",
+      "More fees requested after the first one"
+    ],
+    "customer_question": "Is this lender registered, and why is the fee not simply deducted from the loan amount?"
+  },
+  {
+    "id": "remote_access",
+    "name": "Remote access support",
+    "description": "A fake support agent for a bank, telecom or tech company asks the customer to install a screen-sharing app to 'fix' a problem or process a refund.",
+    "signals": [
+      "Asks to install a screen-sharing or remote control app",
+      "Refund, KYC update or account problem as the reason",
+      "Asks the customer to log in to banking while sharing the screen",
+      "'Accidental' over-refund that must be sent back",
+      "Asks for OTPs read out loud"
+    ],
+    "customer_question": "Did I contact this support team myself, and why would they need control of my phone to help me?"
+  },
+  {
+    "id": "marketplace_advance",
+    "name": "Marketplace advance payment",
+    "description": "A seller or buyer on an online marketplace asks for an advance, token amount or 'delivery charge' before the item is seen, often posing as army or transfer staff.",
+    "signals": [
+      "Price well below market value",
+      "Seller cannot meet in person; says they are posted elsewhere",
+      "Advance, token or courier charge before delivery",
+      "Buyer sends a QR code to 'receive' money",
+      "Pressure because 'many others are interested'"
+    ],
+    "customer_question": "Can I see the item or pay on delivery instead of paying in advance to a stranger?"
+  },
+  {
+    "id": "utility_disconnection",
+    "name": "Utility disconnection threat",
+    "description": "A message says electricity, gas, water or mobile service will be cut tonight unless an overdue bill is paid immediately to a given number or account.",
+    "signals": [
+      "Disconnection 'tonight' or within hours",
+      "Bill not updated or overdue, with no bill reference the customer recognises",
+      "Message from a personal mobile number",
+      "Asks to call an 'officer' or pay to a personal account",
+      "Asks to install an app to pay"
+    ],
+    "customer_question": "Does my bill on the utility's official app or website actually show an overdue amount?"
+  }
+]
