@@ -35,32 +35,49 @@ Next.js API route (Cloud Run)
 - Every Gemini call uses structured JSON output with a schema (`lib/gemini.js`). Results are validated, a malformed response is retried once, and each call times out after 25 s.
 - Conversation text is masked before it is sent to Gemini.
 - Decision guardrails: quotes are checked against the conversation (`quote_verified`), and a payee rated high risk never gets **Proceed**.
-- Each step's duration is logged as one JSON line (`check_complete`) and returned as `timings_ms`.
+- Each step's duration and the token usage are logged as one JSON line (`check_complete`) and returned as `timings_ms` and `tokens`.
 
-**Model:** `gemini-3.5-flash` on Vertex AI, called through the Google Gen AI SDK (`@google/genai`) in Vertex mode (`enterprise: true`) in `asia-south1`, the same region as the Cloud Run service. (The model is not offered in `us-central1`, and the `global` endpoint was slow and unreliable during testing.) The model is set by the `GEMINI_MODEL` env var.
+**Model:** `gemini-3.1-flash-lite`, the cheapest Gemini model that passed our test scenarios. It costs $0.25 per 1M input tokens and $1.50 per 1M output tokens (Vertex AI Standard, `global` endpoint), about $0.002 per check. The model is set by the `GEMINI_MODEL` env var. The SDK is the Google Gen AI SDK (`@google/genai`): Vertex AI mode (`enterprise: true`) on Cloud Run, and the Gemini API with a free-tier key for local development.
+
+## Cost guardrails
+
+Full rules are in `CLAUDE.md`. In short:
+
+- Each Gemini call has an output token cap (400 to 800) and temperature 0.1, with minimal thinking.
+- Conversations are truncated to 6,000 characters (`lib/limits.js`).
+- `/api/check` allows `DAILY_RUN_LIMIT` runs per day (default 200) and 5 per minute per IP. Over a limit it serves saved demo results (`data/demo-results.json`) and does not call Gemini. The counter is in memory per instance for now.
+- Every check logs its token usage, estimated cost and the server's running total (`check_complete` log line).
+- Cloud Run runs with at most 2 instances, scales to zero and has a 60 s timeout.
 
 ## Run locally
 
-Prerequisites: Node.js 20 or newer, the gcloud CLI, and a Google Cloud project with the Vertex AI API enabled.
-
-```bash
-gcloud auth application-default login
-```
-
-```bash
-gcloud services enable aiplatform.googleapis.com --project YOUR_PROJECT_ID
-```
+Prerequisites: Node.js 20 or newer.
 
 ```bash
 cp .env.example .env.local
 ```
 
-Edit `.env.local`:
+For everyday development, use a free-tier Gemini API key from Google AI Studio. Put it in `.env.local` (never commit it):
+
+```
+GEMINI_MODEL=gemini-3.1-flash-lite
+GEMINI_API_KEY=your-free-tier-key
+DAILY_RUN_LIMIT=200
+```
+
+Free-tier requests may be used by Google to improve its products, which is fine here because all data is synthetic.
+
+To use Vertex AI locally instead (for example for final evaluation runs), leave `GEMINI_API_KEY` empty and set:
 
 ```
 GOOGLE_CLOUD_PROJECT=YOUR_PROJECT_ID
-GOOGLE_CLOUD_LOCATION=asia-south1
-GEMINI_MODEL=gemini-3.5-flash
+GOOGLE_CLOUD_LOCATION=global
+```
+
+Then log in once with Application Default Credentials:
+
+```bash
+gcloud auth application-default login
 ```
 
 (`BQ_DATASET` and `FIRESTORE_COLLECTION` are not used until Stage 2.)
@@ -82,10 +99,11 @@ Other commands:
 | `npm run build` | Production build (standalone output) |
 | `npm start` | Serve the production build locally |
 | `npm run mask-demo` | Show masking before and after on sample strings |
+| `npm run save-demos` | Re-run the three demos (3 Gemini runs) and save the results that are served when a limit is hit |
 
 ## Deploy to Cloud Run
 
-`deploy.sh` enables the required APIs and creates a runtime service account (`second-look-run`) with the Vertex AI User role. It then builds the Dockerfile with Cloud Build, deploys to Cloud Run (`asia-south1`, at most 3 instances) with public access and sets the env vars.
+`deploy.sh` enables the required APIs and creates a runtime service account (`second-look-run`) with the Vertex AI User role. It then builds the Dockerfile with Cloud Build, deploys to Cloud Run in `asia-south1` with public access and the cost flags (`--max-instances 2 --min-instances 0 --concurrency 8 --timeout 60 --memory 512Mi --cpu 1`), and sets the env vars. `GEMINI_API_KEY` is never set on Cloud Run, and the code ignores it there.
 
 ```bash
 gcloud auth login
@@ -99,7 +117,7 @@ gcloud config set project YOUR_PROJECT_ID
 GOOGLE_CLOUD_PROJECT=YOUR_PROJECT_ID ./deploy.sh
 ```
 
-Optional overrides: `REGION` (default `asia-south1`), `GOOGLE_CLOUD_LOCATION` (default `asia-south1`), `GEMINI_MODEL` (default `gemini-3.5-flash`), `SERVICE` (default `second-look`).
+Optional overrides: `REGION` (default `asia-south1`), `GOOGLE_CLOUD_LOCATION` (default `global`), `GEMINI_MODEL` (default `gemini-3.1-flash-lite`), `DAILY_RUN_LIMIT` (default `200`), `SERVICE` (default `second-look`).
 
 The script prints the service URL. Check that the service is up:
 
@@ -117,7 +135,7 @@ If the build step fails with a permissions error, the Cloud Build service accoun
 { "payeeId": "PAYEE-1004", "amount": 95000, "conversation": "…", "language": "en" }
 ```
 
-Returns `{ decision, evidence, payee, patterns, masked_counts, timings_ms }`, where `decision` is:
+Returns `{ decision, evidence, payee, patterns, masked_counts, truncated, timings_ms, tokens }`, where `decision` is:
 
 ```json
 {
@@ -131,6 +149,8 @@ Returns `{ decision, evidence, payee, patterns, masked_counts, timings_ms }`, wh
 ```
 
 Errors return `{ error, step, retryable }`: 400 for bad input, 502 when Gemini fails, 500 otherwise.
+
+When a rate limit is hit, a demo conversation gets its saved result with `saved_example: true` and a `notice`. Any other conversation gets 429 `{ error, limited, examples }`.
 
 `GET /api/health` returns `{ "status": "ok" }`.
 
