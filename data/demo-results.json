@@ -5,45 +5,45 @@
       "score": 100,
       "reasons": [
         {
-          "text": "You are being pressured by someone claiming to be law enforcement who is threatening you with arrest.",
+          "text": "You are being pressured by someone claiming to be an official who is threatening you with arrest if you do not send money immediately.",
           "evidence_quote": "If it is not done in 30 minutes an arrest warrant will be issued.",
           "source": "conversation",
           "quote_verified": true
         },
         {
-          "text": "The payee account is newly created and has been flagged for suspicious activity.",
-          "evidence_quote": "new_account",
+          "text": "The payee account is newly created, has multiple prior fraud reports, and shows signs of being used to quickly move funds for others.",
+          "evidence_quote": "prior_fraud_report, new_account, high_pass_through",
           "source": "payee",
           "quote_verified": true
         },
         {
-          "text": "You are being instructed to move your money to a 'safe' account, which is a common tactic used by scammers.",
+          "text": "You are being instructed to move your money to a 'safe' account and share an OTP, which are classic signs of a scam.",
           "evidence_quote": "Transfer your savings to the safe custody verification account",
           "source": "conversation",
           "quote_verified": true
         },
         {
-          "text": "The payee has received multiple reports of fraudulent activity.",
-          "evidence_quote": "prior_reports: 4",
-          "source": "payee",
+          "text": "The caller is trying to isolate you by telling you not to speak to anyone else about this investigation.",
+          "evidence_quote": "Do not disconnect and do not tell anyone, this is a confidential investigation.",
+          "source": "conversation",
           "quote_verified": true
         }
       ],
       "next_steps": [
-        "Do not send any money or share your OTP with anyone.",
+        "We recommend you do not send this payment yet, and a member of bank staff will review it with you.",
         "Ask yourself: Would a real officer ask me to send money to a personal account, or could I call the official number myself and check?",
-        "We recommend you do not send this payment yet, and a member of bank staff will review it with you."
+        "Hang up immediately and contact your local police station using a verified phone number from their official website."
       ],
       "explanation_language": "en",
-      "explanation": "This request shows clear signs of a scam involving impersonation and high-pressure tactics. Please do not proceed with this transfer, as it is likely an attempt to steal your funds."
+      "explanation": "This request shows clear signs of an impersonation scam designed to steal your money through fear and urgency. Official authorities will never ask you to transfer funds to a 'safe' account or demand payment under threat of arrest."
     },
     "timings_ms": {
       "mask": 0,
-      "payee": 5,
-      "patterns": 1700,
-      "evidence": 2294,
-      "decide": 2129,
-      "total": 4423
+      "payee": 1789,
+      "patterns": 1896,
+      "evidence": 2695,
+      "decide": 2286,
+      "total": 4982
     }
   },
   "investment": {
@@ -52,26 +52,26 @@
       "score": 95,
       "reasons": [
         {
-          "text": "You are being promised guaranteed returns, which is a major red flag for investment fraud.",
+          "text": "You are being promised guaranteed returns on an investment, which is a major red flag for financial fraud.",
           "evidence_quote": "Guaranteed returns.",
           "source": "conversation",
           "quote_verified": true
         },
         {
-          "text": "The payee account is very new and has been flagged for suspicious activity, including rapid transfers.",
-          "evidence_quote": "new_account, rapid_in_and_out_transfers",
+          "text": "The payee account is very new and has been flagged for prior fraud reports.",
+          "evidence_quote": "prior_fraud_report",
           "source": "payee",
           "quote_verified": true
         },
         {
-          "text": "You are being pressured to act quickly due to artificial scarcity and time-sensitive 'insider' claims.",
+          "text": "You are being pressured to act quickly due to an artificial deadline and limited availability.",
           "evidence_quote": "insider IPO allotment window closes tonight",
           "source": "conversation",
           "quote_verified": true
         },
         {
-          "text": "The payee is not a registered broker and has received prior reports of suspicious activity.",
-          "evidence_quote": "not_a_registered_broker, prior_reports: 2",
+          "text": "The account shows signs of being used as a pass-through for money from many unrelated senders.",
+          "evidence_quote": "high_pass_through",
           "source": "payee",
           "quote_verified": true
         }
@@ -82,15 +82,15 @@
         "Do not share any personal or financial information with this group."
       ],
       "explanation_language": "en",
-      "explanation": "This investment opportunity shows multiple signs of a scam, including high-pressure tactics and promises of guaranteed profits. We recommend you do not send this payment yet, and a member of bank staff will review it with you."
+      "explanation": "This payment request shows multiple signs of a common investment scam. We recommend you do not send this payment yet, and a member of bank staff will review it with you."
     },
     "timings_ms": {
       "mask": 0,
-      "payee": 0,
-      "patterns": 1444,
-      "evidence": 1655,
-      "decide": 1892,
-      "total": 3547
+      "payee": 1108,
+      "patterns": 1209,
+      "evidence": 1552,
+      "decide": 1789,
+      "total": 3341
     }
   },
   "rent": {
@@ -99,15 +99,21 @@
       "score": 0,
       "reasons": [
         {
-          "text": "You have a long-standing relationship with this payee, as indicated by the account age and your history of previous payments.",
-          "evidence_quote": "paid_by_customer_before",
+          "text": "The payee is a long-standing contact with an account age of 8 years, which is consistent with a long-term landlord relationship.",
+          "evidence_quote": "account_age_days: 2920",
           "source": "payee",
           "quote_verified": true
         },
         {
-          "text": "The payment request is consistent with your regular rental obligations and the conversation shows a normal, ongoing landlord-tenant relationship.",
-          "evidence_quote": "October rent of 18,500 is due on the 5th",
+          "text": "The conversation reflects a normal, ongoing landlord-tenant relationship involving routine maintenance requests.",
+          "evidence_quote": "The landlord will send a plumber on Saturday to fix a leaking kitchen tap",
           "source": "conversation",
+          "quote_verified": false
+        },
+        {
+          "text": "The payee has no history of reported issues or suspicious activity.",
+          "evidence_quote": "prior_reports: 0",
+          "source": "payee",
           "quote_verified": true
         }
       ],
@@ -116,15 +122,15 @@
         "Confirm the payment amount matches your rental agreement."
       ],
       "explanation_language": "en",
-      "explanation": "This payment appears to be a routine transaction to a known landlord. There are no signs of suspicious activity or pressure in your conversation."
+      "explanation": "This payment appears to be a routine rent transfer to a long-term contact. The conversation and account history show no signs of suspicious activity."
     },
     "timings_ms": {
       "mask": 0,
-      "payee": 0,
-      "patterns": 1005,
-      "evidence": 1546,
-      "decide": 1607,
-      "total": 3153
+      "payee": 738,
+      "patterns": 920,
+      "evidence": 1347,
+      "decide": 1951,
+      "total": 3299
     }
   }
 }
