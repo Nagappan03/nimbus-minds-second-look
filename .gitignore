@@ -23,3 +23,6 @@
 npm-debug.log*
 *.tsbuildinfo
 next-env.d.ts
+
+# evaluation cache (rebuilt by npm run eval)
+data/eval-cache.json
