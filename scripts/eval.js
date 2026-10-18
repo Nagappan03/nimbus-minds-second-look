@@ -4,7 +4,10 @@
 // cases to Firestore and does not touch the daily run counter.
 //
 // Run: npm run eval -- [--limit N] [--tag red_team] [--concurrency N] [--yes] [--fresh]
-//                      [--file path] [--dry-run]
+//                      [--file path] [--dry-run] [--reverify]
+// --reverify re-checks the quotes saved in data/eval-results.json with the current
+// verifier and recomputes the metrics, with no Gemini calls. Use it only after a
+// verifier-only change (the prompt text must be unchanged).
 // Results are cached per scenario in data/eval-cache.json, so reruns of
 // unchanged scenarios cost nothing.
 import { createHash } from "node:crypto";
@@ -14,6 +17,9 @@ import { runCheck } from "../lib/pipeline/runCheck.js";
 import { getModel, getBackend } from "../lib/gemini.js";
 import { estimateCost } from "../lib/usage.js";
 import { computeMetrics } from "./evalMetrics.js";
+import { maskText } from "../lib/pipeline/mask.js";
+import { checkQuotes } from "../lib/pipeline/decide.js";
+import { MAX_CONVERSATION_CHARS } from "../lib/limits.js";
 
 const root = new URL("../", import.meta.url);
 const CACHE_FILE = new URL("data/eval-cache.json", root);
@@ -33,7 +39,7 @@ const PROMPT_FILES = [
 ];
 
 function parseArgs(argv) {
-  const args = { limit: 10, tag: null, concurrency: 2, yes: false, fresh: false, file: "data/scenarios.json", dryRun: false };
+  const args = { limit: 10, tag: null, concurrency: 2, yes: false, fresh: false, file: "data/scenarios.json", dryRun: false, reverify: false };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--limit") args.limit = Number(argv[++i]);
@@ -43,6 +49,7 @@ function parseArgs(argv) {
     else if (a === "--yes") args.yes = true;
     else if (a === "--fresh") args.fresh = true;
     else if (a === "--dry-run") args.dryRun = true;
+    else if (a === "--reverify") args.reverify = true;
     else throw new Error(`Unknown flag ${a}`);
   }
   if (!Number.isInteger(args.limit) || args.limit < 1) throw new Error("--limit must be a positive integer");
@@ -224,6 +231,39 @@ function printSummary(m, scenarioCount, runCost) {
   }
 }
 
+/**
+ * Re-checks saved quotes against the same masked conversation the pipeline saw,
+ * recomputes the metrics and re-keys the cache to the current code version.
+ * The model's answers are reused as they are; no Gemini calls.
+ */
+function reverify(scenarios, model, version, cache, keyFor) {
+  const previous = readJson(RESULTS_FILE, null);
+  if (!previous?.rows?.every((r) => r.error || r.reasons)) {
+    throw new Error("data/eval-results.json has no saved reasons; run the eval first");
+  }
+  const byId = new Map(scenarios.map((s) => [s.id, s]));
+  const rows = previous.rows.map((row) => {
+    const s = byId.get(row.id);
+    if (row.error || !s) return row;
+    const masked = maskText(s.lines.join("\n").slice(0, MAX_CONVERSATION_CHARS)).text;
+    const reasons = checkQuotes(row.reasons.map((r) => ({ ...r, evidence_quote: r.quote })), masked).map(
+      ({ evidence_quote, ...r }) => r
+    );
+    const quoting = reasons.filter((r) => r.source === "conversation");
+    const updated = { ...row, reasons, quote_verified_count: quoting.filter((r) => r.quote_verified).length, conversation_reason_count: quoting.length };
+    cache[keyFor(s)] = updated;
+    return updated;
+  });
+  writeFileSync(CACHE_FILE, JSON.stringify(cache, null, 2) + "\n");
+  const metrics = computeMetrics(rows);
+  writeFileSync(
+    RESULTS_FILE,
+    JSON.stringify({ ...previous, model, promptVersion: version, reverifiedAt: new Date().toISOString(), metrics, rows }, null, 2) + "\n"
+  );
+  printSummary(metrics, rows.length, 0);
+  console.log(`\nRe-verified ${rows.length} rows from data/eval-results.json (no Gemini calls).`);
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const fileUrl = new URL(args.file, root);
@@ -236,6 +276,7 @@ async function main() {
   const version = promptVersion();
   const cache = args.fresh ? {} : readJson(CACHE_FILE, {});
   const keyFor = (s) => sha(JSON.stringify(s) + model + version + payeeFor.get(s.id));
+  if (args.reverify) return reverify(all, model, version, cache, keyFor);
   const toRun = selected.filter((s) => !cache[keyFor(s)]);
 
   const est = perCheckEstimate(readJson(CACHE_FILE, {}), model);
