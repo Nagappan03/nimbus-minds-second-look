@@ -85,7 +85,7 @@ function CaseHeader({ c }) {
         </div>
         <div>
           <dt>Amount</dt>
-          <dd>{formatAmount(c.amount)}</dd>
+          <dd>{formatAmount(c.amount, c.currency)}</dd>
         </div>
         <div>
           <dt>Checked</dt>

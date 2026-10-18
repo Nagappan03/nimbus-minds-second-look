@@ -5,6 +5,4 @@ export function formatTime(iso) {
   return new Date(iso).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
 }
 
-export function formatAmount(amount) {
-  return Number(amount).toLocaleString("en-IN", { maximumFractionDigits: 2 });
-}
+export { formatAmount } from "@/lib/currency";

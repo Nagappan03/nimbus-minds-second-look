@@ -6,6 +6,7 @@ import { takeRun, clientIp } from "@/lib/rateLimit";
 import { findDemoResult, listDemoResults } from "@/lib/demoResults";
 import { readJsonBody } from "@/lib/http";
 import { saveCase } from "@/lib/firestore";
+import { CURRENCIES } from "@/lib/currency";
 
 const LIMIT_MESSAGES = {
   daily: "Second Look has reached today's limit of live checks. Please try again tomorrow. You can still see saved example results.",
@@ -17,13 +18,15 @@ function validate(body) {
   const amount = Number(body?.amount);
   const conversation = String(body?.conversation || "").trim();
   const language = body?.language || "en";
+  const currency = body?.currency || "INR";
 
   if (!payeeId) return { error: "Please enter the payee." };
   if (!Number.isFinite(amount) || amount <= 0) return { error: "Please enter an amount greater than zero." };
   if (!conversation) return { error: "Please paste the conversation." };
   if (!LANGUAGES[language]) return { error: "Unsupported language." };
+  if (!CURRENCIES.includes(currency)) return { error: `Currency must be one of ${CURRENCIES.join(", ")}.` };
   // Long text is truncated (not rejected) inside runCheck.
-  return { input: { payeeId, amount, conversation, language } };
+  return { input: { payeeId, amount, currency, conversation, language } };
 }
 
 /** When a limit is hit: the saved result for a demo scenario, or all saved examples. */

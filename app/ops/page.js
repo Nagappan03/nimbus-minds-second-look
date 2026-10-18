@@ -104,7 +104,7 @@ export default function OpsQueue() {
                     {c.payee_name || "Unknown payee"}
                     <span className={styles.subtle}>{c.payee_id}</span>
                   </td>
-                  <td className={styles.num}>{formatAmount(c.amount)}</td>
+                  <td className={styles.num}>{formatAmount(c.amount, c.currency)}</td>
                   <td>
                     <span className={`${styles.pill} ${styles[c.verdict]}`}>{VERDICT_LABELS[c.verdict]}</span>
                   </td>

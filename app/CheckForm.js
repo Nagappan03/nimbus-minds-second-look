@@ -6,6 +6,7 @@ import styles from "./page.module.css";
 import { DEMO_SCENARIOS } from "@/lib/demoScenarios";
 import VerdictCard from "./components/VerdictCard";
 import { labelsFor } from "@/lib/labels";
+import { CURRENCIES, defaultCurrency } from "@/lib/currency";
 
 const LANGUAGE_OPTIONS = [
   { code: "en", label: "English" },
@@ -14,7 +15,7 @@ const LANGUAGE_OPTIONS = [
   { code: "id", label: "Bahasa Indonesia" },
 ];
 
-const EMPTY_FORM = { payeeId: "", amount: "", conversation: "", language: "en" };
+const EMPTY_FORM = { payeeId: "", amount: "", currency: "INR", conversation: "", language: "en" };
 
 export default function CheckForm({ payees }) {
   const [form, setForm] = useState(EMPTY_FORM);
@@ -22,11 +23,23 @@ export default function CheckForm({ payees }) {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [limited, setLimited] = useState(null); // { message, examples } when a rate limit is hit
+  const [currencyTouched, setCurrencyTouched] = useState(false);
 
   const update = (field) => (e) => setForm({ ...form, [field]: e.target.value });
 
+  // The currency follows the language until the customer picks one themselves.
+  function changeLanguage(e) {
+    const language = e.target.value;
+    setForm({ ...form, language, currency: currencyTouched ? form.currency : defaultCurrency(language) });
+  }
+
+  function changeCurrency(e) {
+    setCurrencyTouched(true);
+    setForm({ ...form, currency: e.target.value });
+  }
+
   function loadDemo(demo) {
-    setForm({ ...form, payeeId: demo.payeeId, amount: demo.amount, conversation: demo.conversation });
+    setForm({ ...form, payeeId: demo.payeeId, amount: demo.amount, currency: demo.currency, conversation: demo.conversation });
     setStatus("idle");
     setResult(null);
   }
@@ -95,7 +108,16 @@ export default function CheckForm({ payees }) {
 
         <label>
           Amount
-          <input type="number" min="1" step="any" inputMode="decimal" value={form.amount} onChange={update("amount")} placeholder="0" required />
+          <span className={styles.amountRow}>
+            <select aria-label="Currency" value={form.currency} onChange={changeCurrency}>
+              {CURRENCIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+            <input type="number" min="1" step="any" inputMode="decimal" value={form.amount} onChange={update("amount")} placeholder="0" required />
+          </span>
         </label>
 
         <label>
@@ -105,7 +127,7 @@ export default function CheckForm({ payees }) {
 
         <label>
           Explain the result in
-          <select value={form.language} onChange={update("language")}>
+          <select value={form.language} onChange={changeLanguage}>
             {LANGUAGE_OPTIONS.map((l) => (
               <option key={l.code} value={l.code}>
                 {l.label}

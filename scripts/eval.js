@@ -133,6 +133,7 @@ async function runScenario(scenario, payeeId) {
   const input = {
     payeeId,
     amount: Number(scenario.amount),
+    currency: scenario.currency,
     conversation: scenario.lines.join("\n"),
     language: scenario.language,
   };
