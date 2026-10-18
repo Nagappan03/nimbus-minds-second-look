@@ -241,7 +241,7 @@ When a rate limit is hit, a demo conversation gets its saved result with `saved_
 
 `npm run eval` runs the labelled scenarios in `data/scenarios.json` through the same pipeline as the app (`runCheck`, including the BigQuery payee lookup), without saving cases or touching the daily counter, and writes `data/eval-results.json`. The `/evaluation` page shows those results and reads the scenario count from that file.
 
-Flags: `--limit N` (default 10), `--tag red_team`, `--concurrency N` (default 2, max 3), `--yes` (skip the confirmation asked above 40 uncached scenarios), `--fresh` (ignore the cache), `--file path` and `--dry-run` (print the plan and cost estimate only). Results are cached per scenario in `data/eval-cache.json` (git-ignored) and are re-run only when the scenario, model, payee or prompt files change.
+Flags: `--limit N` (default 10), `--tag red_team`, `--concurrency N` (default 2, max 3), `--yes` (skip the confirmation asked above 40 uncached scenarios), `--fresh` (ignore the cache), `--file path`, `--dry-run` (print the plan and cost estimate only) and `--reverify` (re-check the saved quotes with the current verifier and recompute the metrics, no Gemini calls; only after a verifier-only change). Results are cached per scenario in `data/eval-cache.json` (git-ignored) and are re-run only when the scenario, model, payee or prompt files change.
 
 ```bash
 npm run eval -- --yes --limit 200
@@ -251,33 +251,38 @@ npm run eval -- --yes --limit 200
 
 ### Latest results
 
-121 scenarios (83 English, 16 Hindi, 10 Tamil, 12 Bahasa Indonesia; 8 red-team), `gemini-3.1-flash-lite` on Vertex AI, run on 18 Oct 2026. All 121 answered, no errors.
+121 scenarios (83 English, 16 Hindi, 10 Tamil, 12 Bahasa Indonesia; 8 red-team), `gemini-3.1-flash-lite` on Vertex AI, one fresh run on 18 Oct 2026. All 121 answered, no errors.
 
 | Metric | Result | What it means |
 | --- | --- | --- |
-| Acceptable rate | 99.2% (120 of 121) | The verdict is one of the scenario's acceptable verdicts |
-| Exact match | 80.2% | The verdict equals the expected verdict |
+| Acceptable rate | 98.4% (119 of 121) | The verdict is one of the scenario's acceptable verdicts |
+| Exact match | 79.3% | The verdict equals the expected verdict |
 | Scam catch rate | 100% (44 of 44) | Of scenarios expected HOLD, the share not answered PROCEED |
 | HOLD on expected-HOLD scams | 97.7% | Of scenarios expected HOLD, the share answered HOLD |
 | False hold rate | 0% (0 of 47) | Of genuine payments (expected PROCEED), the share answered HOLD |
 | False alarm rate | 6.4% (3 of 47) | Of genuine payments, the share not answered PROCEED (here all three were BE_CAREFUL) |
-| Quote verified | 92.9% | Reasons quoting the conversation whose quote is found word for word in the (masked) chat |
+| Quote verified | 93.9% (200 of 213) | Reasons quoting the conversation whose quote is found in the (masked) chat, ignoring case, spacing and punctuation |
 | High-risk payee answered PROCEED | 0 of 25 | Must be 0: a payee the bank rates high risk should never get PROCEED |
 | Red-team pass rate | 100% (8 of 8) | Prompt-injection scenarios not answered PROCEED (7 HOLD, 1 BE_CAREFUL) |
-| By language (acceptable) | en 98.8%, hi 100%, ta 100%, id 100% | Acceptable rate per conversation language |
-| Latency | median 3.2 s, p95 6.6 s | Time for one full check (3 Gemini calls plus the BigQuery lookup) |
-| Tokens and cost | 342,597 in, 66,163 out, $0.18 | About $0.0015 per check |
+| By language (acceptable) | en 97.6%, hi 100%, ta 100%, id 100% | Acceptable rate per conversation language |
+| Latency | median 3.1 s, p95 4.1 s | Time for one full check (3 Gemini calls plus the BigQuery lookup) |
+| Tokens and cost | 342,764 in, 66,555 out, $0.19 | About $0.0015 per check |
 
 Confusion matrix (rows: expected, columns: verdict):
 
-| Expected \ Got | PROCEED | BE_CAREFUL | HOLD |
+| Expected \\ Got | PROCEED | BE_CAREFUL | HOLD |
 | --- | --- | --- | --- |
 | PROCEED | 44 | 3 | 0 |
-| BE_CAREFUL | 2 | 10 | 18 |
+| BE_CAREFUL | 2 | 9 | 19 |
 | HOLD | 0 | 1 | 43 |
 
-**Failures (verdict outside the acceptable list):** 1. B12, a car dealer asking for a refundable 50,000 token before an inspection the next day (medium-risk payee). Expected BE_CAREFUL (PROCEED also acceptable); got HOLD (score 85). The model treated the advance before inspection as a marketplace-scam sign.
+**Failures (verdict outside the acceptable list):** 2.
 
-**What the numbers say:** every scam and every red-team scenario was flagged, and no genuine payment was held. The main weakness is over-caution in the middle band: 18 of 30 scenarios we labelled BE_CAREFUL were answered HOLD (allowed by their labels, but stricter than intended). Quote checking: 14 scenarios had at least one reason whose quote was not found word for word; the results file stores only the first reason of each scenario, so those quotes are not shown.
+- B05: the landlord asks for rent to go to his wife's account "today" because his is "under maintenance", after a call the day before (low-risk payee). Expected BE_CAREFUL (PROCEED also acceptable); got HOLD (score 85). The model read the account change as an invoice-redirection sign. The previous run answered BE_CAREFUL, so this case sits on the boundary.
+- B12: a car dealer asks for a refundable 50,000 token before an inspection the next day (medium-risk payee). Expected BE_CAREFUL (PROCEED also acceptable); got HOLD (score 85). The model treated the advance before inspection as a marketplace-scam sign. Same result in both runs.
+
+**Quotes not found word for word (13 of 213):** in 12 the model paraphrased the chat instead of quoting it, all on genuine payments (for example "The monthly bus fee is 900" for "Monthly bus fee 900, same account as the receipt"); in 1 (H29) it skipped words inside the quote. The verifier is deliberately strict and marks these as not verified. One further mismatch (H41) was only a punctuation mark, the Devanagari full stop "।" returned as "。", so the verifier now ignores punctuation; `npm run eval -- --limit 200 --reverify` re-checked the saved reasons without calling Gemini.
+
+**What the numbers say:** every scam and every red-team scenario was flagged, and no genuine payment was held. The main weakness is over-caution in the middle band: 19 of 30 scenarios we labelled BE_CAREFUL were answered HOLD (allowed by most of their labels, but stricter than intended). Between two full runs only one verdict changed (B05).
 
 The red-team script (`npm run redteam`) is still to do.
