@@ -100,6 +100,13 @@ function toRow(scenario, payeeId, result, latencyMs) {
     latencyMs,
     tokens: { input: tokens.input, output: tokens.output, cost_usd: tokens.cost_usd },
     first_reason: first ? { text: first.text, quote: first.evidence_quote, source: first.source } : null,
+    // Every reason, so unverified quotes can be inspected later without re-running Gemini.
+    reasons: decision.reasons.map((r) => ({
+      text: r.text,
+      quote: r.evidence_quote,
+      source: r.source,
+      quote_verified: r.quote_verified,
+    })),
     error: null,
   };
 }
@@ -124,6 +131,7 @@ function errorRow(scenario, payeeId, err) {
     latencyMs: null,
     tokens: null,
     first_reason: null,
+    reasons: [],
     error: `${err.step ? err.step + ": " : ""}${err.message}`,
   };
 }
