@@ -1,6 +1,6 @@
 # Second Look
 
-Second Look checks the conversation behind a payment before a customer sends money. The customer pastes the chat that asked them to pay and enters the payee and amount. Gemini reviews it with the payee's risk signals and returns **Proceed**, **Be careful** or **Hold**. Each reason quotes the evidence it is based on, and the result can be shown in English, Hindi, Tamil or Bahasa Indonesia.
+Second Look checks the conversation behind a payment before a customer sends money. The customer pastes the chat that asked them to pay, or uploads a screenshot of it, and enters the payee, amount and currency. Gemini reviews it with the payee's risk signals and returns **Proceed**, **Be careful** or **Hold**. Each reason quotes the evidence it is based on, and the result can be shown in English, Hindi, Tamil or Bahasa Indonesia.
 
 The AI never blocks money on its own. A Hold is advice: every check is saved as a case, and bank staff confirm or release each hold in the ops console.
 
@@ -16,7 +16,13 @@ Stage 2 is done:
 - Ops console (`/ops`) to review cases, confirm holds or release them, and draft a case summary
 - Global daily run limit kept in Firestore
 
-Stage 3 adds the evaluation harness and page, screenshot input, the red-team script and UI polish (voice notes if time allows).
+Stage 3 so far:
+
+- Evaluation harness (`npm run eval`) and evaluation page (`/evaluation`); the full 62-scenario run is still to do
+- Screenshot input: upload a chat screenshot (or try one of three synthetic samples); Gemini transcribes it and the transcript goes through the same pipeline
+- Currency (INR, IDR, SGD, USD) on every check, case and evaluation scenario
+
+Still to do: the full evaluation run, the red-team script and UI polish (voice notes only if time allows).
 
 ## Architecture
 
@@ -27,6 +33,7 @@ Customer page (/)                       Ops console (/ops, /ops/[id])
 Next.js API routes on Cloud Run ◄──────────┘
    ├─ rate limits: 5/min per IP (memory), DAILY_RUN_LIMIT/day (Firestore counter)
    ├─ lib/pipeline/runCheck.js
+   │    0. transcribe.js     (screenshots only) Gemini reads the chat image into "Speaker: text" lines
    │    1. mask.js           hide account/card numbers, phones, emails, UPI ids, OTPs
    │    2. in parallel:
    │       ├─ evidenceReader.js  Gemini: claims, urgency, payment instructions, quoted red flags
@@ -38,19 +45,21 @@ Next.js API routes on Cloud Run ◄──────────┘
 
 - Every Gemini call uses structured JSON output with a schema (`lib/gemini.js`). Results are validated, a malformed response is retried once, and each call times out after 25 s.
 - Conversation text is masked before it reaches Gemini or Firestore. The raw text is never stored.
+- **Screenshots are processed in memory and never stored.** The browser shrinks the image to at most 1024 px and re-encodes it as JPEG before sending. The server sends it to Gemini for transcription only. The image and the unmasked transcript are never written to Firestore or the logs; the case keeps only the masked transcript, tagged `source: screenshot`. If the image does not show a conversation, the customer is told so and the rest of the pipeline does not run.
 - Decision guardrails: quotes are checked against the conversation (`quote_verified`), and a payee rated high risk never gets **Proceed**.
 - Payee risk signals stay on the server. The customer page only receives payee ids and display names.
 - Case status: `pending_review` for Hold and Be careful, `no_action` for Proceed. A reviewer moves `pending_review` to `hold_confirmed` or `released`; any other change is rejected.
 - Each step's duration and the token usage are logged as one JSON line (`check_complete`).
 
-**Model:** `gemini-3.1-flash-lite`, the cheapest Gemini model that passed our test scenarios. It costs $0.25 per 1M input tokens and $1.50 per 1M output tokens (Vertex AI Standard, `global` endpoint), about $0.002 per check. The model is set by the `GEMINI_MODEL` env var. The SDK is the Google Gen AI SDK (`@google/genai`): Vertex AI mode (`enterprise: true`) on Cloud Run, and the Gemini API with a free-tier key for local development.
+**Model:** `gemini-3.1-flash-lite`, the cheapest Gemini model that passed our test scenarios. It costs $0.25 per 1M input tokens and $1.50 per 1M output tokens (Vertex AI Standard, `global` endpoint). A text check makes 3 Gemini calls and costs about $0.0013–0.0024; a screenshot check adds a transcription call (about 1,500 input tokens for the image) and costs about $0.002–0.0032 in our tests. Budget $0.003–0.005 per check to be safe. The model is set by the `GEMINI_MODEL` env var. The SDK is the Google Gen AI SDK (`@google/genai`): Vertex AI mode (`enterprise: true`) on Cloud Run, and the Gemini API with a free-tier key for local development.
 
 ## Cost guardrails
 
 Full rules are in `CLAUDE.md`. In short:
 
 - Each Gemini call has an output token cap (400 to 800), temperature 0.1 and minimal thinking.
-- Conversations are truncated to 6,000 characters (`lib/limits.js`). Request bodies over 50 KB get a 413.
+- Conversations are truncated to 6,000 characters (`lib/limits.js`). Request bodies over 50 KB get a 413, or over 700 KB when a screenshot is attached.
+- Screenshots: one image, PNG, JPEG or WebP, at most 8 MB before processing; downscaled in the browser to 1024 px on the longest side. A screenshot check counts as one run against the limits, including when no conversation could be read.
 - `/api/check` and the case summary share a global limit of `DAILY_RUN_LIMIT` runs per day (default 200), counted in one Firestore document per day, and 5 per minute per IP. Over the limit, Gemini is not called and the saved demo results (`data/demo-results.json`) are served instead.
 - Every Gemini request logs its token usage, estimated cost and the server's running total.
 - BigQuery queries are capped at 100 MB billed and 5 s. Firestore reads are limited (one document, or at most 50 cases).
@@ -63,6 +72,8 @@ Full rules are in `CLAUDE.md`. In short:
 | `data/payees-seed.json` | 300 synthetic payees (208 low, 59 medium, 33 high risk), generated by `scripts/generate-payees.js`. High-risk payees follow mule patterns: a very new account, many inbound senders, high pass-through and prior reports. Display names are neutral at every risk level. |
 | `data/typologies.json` | 12 scam types with signals and the question a customer should ask |
 | `data/demo-results.json` | Saved results for the three demos, served when a limit is hit |
+| `data/scenarios.json` | 62 labelled evaluation scenarios written by the builders |
+| `public/samples/*.png` | Three synthetic chat screenshots of the demos (rent, officer, investment), made with `npm run make-samples` |
 
 ## Google Cloud setup (once per project)
 
@@ -152,6 +163,8 @@ Other commands:
 | `npm run seed` | Load `data/payees-seed.json` into BigQuery |
 | `npm run mask-demo` | Show masking before and after on sample strings |
 | `npm run save-demos` | Re-run the three demos (3 Gemini runs) and save the results served when a limit is hit |
+| `npm run make-samples` | Render the three sample screenshots with headless Chrome (set `CHROME_PATH` if Chrome is elsewhere) |
+| `npm run eval` | Run the evaluation scenarios (see Evaluation) |
 
 ## Deploy to Cloud Run
 
@@ -188,10 +201,16 @@ The output should end with `429`.
 `POST /api/check`
 
 ```json
-{ "payeeId": "PAYEE-1004", "amount": 95000, "conversation": "…", "language": "en" }
+{ "payeeId": "PAYEE-1004", "amount": 95000, "currency": "INR", "conversation": "…", "language": "en" }
 ```
 
-Returns `{ case_id, decision, payee: { payee_id, display_name }, truncated, timings_ms, tokens }`, where `decision` is:
+or, with a screenshot instead of text (base64 PNG, JPEG or WebP):
+
+```json
+{ "payeeId": "PAYEE-1004", "amount": 95000, "currency": "INR", "language": "en", "image": { "mimeType": "image/jpeg", "data": "…" } }
+```
+
+Returns `{ case_id, decision, payee: { payee_id, display_name }, source, transcript, truncated, timings_ms, tokens }`, where `transcript` is the masked text read from a screenshot (null for pasted text) and `decision` is:
 
 ```json
 {
@@ -204,7 +223,7 @@ Returns `{ case_id, decision, payee: { payee_id, display_name }, truncated, timi
 }
 ```
 
-Errors return `{ error, step, retryable }`: 400 for bad input, 413 for bodies over 50 KB, 502 when Gemini fails, 500 otherwise. If saving the case fails, the verdict is still returned with `case_id: null`.
+Errors return `{ error, step, retryable }`: 400 for bad input, 413 for bodies over 50 KB (700 KB with a screenshot), 415 for an unsupported image type, 422 when no conversation could be read from a screenshot, 502 when Gemini fails, 500 otherwise. If saving the case fails, the verdict is still returned with `case_id: null`.
 
 When a rate limit is hit, a demo conversation gets its saved result with `saved_example: true` and a `notice`. Any other conversation gets 429 `{ error, limited, examples }`.
 
@@ -220,4 +239,14 @@ When a rate limit is hit, a demo conversation gets its saved result with `saved_
 
 ## Evaluation
 
-The evaluation harness (`npm run eval`) and red-team script (`npm run redteam`) are added in Stage 3.
+`npm run eval` runs the labelled scenarios in `data/scenarios.json` through the same pipeline as the app (`runCheck`, including the BigQuery payee lookup), without saving cases or touching the daily counter, and writes `data/eval-results.json`. The `/evaluation` page shows those results.
+
+Flags: `--limit N` (default 10), `--tag red_team`, `--concurrency N` (default 2, max 3), `--yes` (skip the confirmation asked above 40 uncached scenarios), `--fresh` (ignore the cache), `--file path` and `--dry-run` (print the plan and cost estimate only). Results are cached per scenario in `data/eval-cache.json` (git-ignored) and are re-run only when the scenario, model, payee or prompt files change.
+
+```bash
+npm run eval -- --limit 5 --dry-run
+```
+
+How to read the results: the 62 synthetic scenarios were written by the builders, so results show agreement with our own labels, not independent validation. Single model. No real customer data.
+
+The red-team script (`npm run redteam`) is still to do.

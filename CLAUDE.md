@@ -29,8 +29,8 @@ The builder is Nags, a data engineer who knows React, Node.js and BigQuery. Keep
 ## Cost guardrails
 These rules apply to all code and to every stage. They override the earlier "no API key" rule for local development.
 
-1. **Model:** use the cheapest Gemini model that gives acceptable results (Flash-class or lighter). Never use a Pro model without asking Nags. When proposing a model, state its ID and its price per million input and output tokens from Google's official pricing page. Current choice: `gemini-3.1-flash-lite` on the `global` endpoint, $0.25 input / $1.50 output per 1M tokens (Vertex AI Standard, checked 2026-10-15; regional endpoints cost 10% more).
-2. **Per call:** every Gemini call sets `maxOutputTokens` (800 by default, lower where possible) and a low temperature. Truncate conversation text to 6,000 characters, resize images to 1024px at most on the longest side, and limit audio to 60 seconds. Limits live in `lib/limits.js`.
+1. **Model:** use the cheapest Gemini model that gives acceptable results (Flash-class or lighter). Never use a Pro model without asking Nags. When proposing a model, state its ID and its price per million input and output tokens from Google's official pricing page. Current choice: `gemini-3.1-flash-lite` on the `global` endpoint, $0.25 input / $1.50 output per 1M tokens (Vertex AI Standard, checked 2026-10-15; regional endpoints cost 10% more). A text check makes 3 Gemini calls (about $0.0013–0.0024); a screenshot check adds a transcription call (about $0.002–0.0032 measured). Budget $0.003–0.005 per check.
+2. **Per call:** every Gemini call sets `maxOutputTokens` (800 by default, lower where possible) and a low temperature. Truncate conversation text to 6,000 characters, resize images to 1024px at most on the longest side (done in the browser, re-encoded as JPEG), and limit audio to 60 seconds. Request bodies: 50 KB for text, 700 KB with a screenshot. Screenshots are processed in memory and never stored or logged. Limits live in `lib/limits.js`.
 3. **Rate limits on `/api/check`:** at most `DAILY_RUN_LIMIT` (default 200) pipeline runs per day and 5 per minute per IP. When a limit is hit, return a friendly message and serve the saved example results for the three demo scenarios (`data/demo-results.json`) instead of calling Gemini. Stage 1 uses an in-memory counter; Stage 2 moves it to Firestore so the limit is global.
 4. **Token logging:** log token usage (input, output, thinking, estimated cost) per request and keep a running total in the server log.
 5. **Cloud Run flags:** `--max-instances 2 --min-instances 0 --concurrency 8 --timeout 60 --memory 512Mi --cpu 1`.
@@ -43,11 +43,12 @@ These rules apply to all code and to every stage. They override the earlier "no 
 app/page.js                  customer "Check before sending" page (server: passes payee ids and names only)
 app/CheckForm.js             customer form, demo buttons, loading/error/limit states
 app/components/VerdictCard.js  localised verdict card (customer page and ops case page)
+app/components/ScreenshotInput.js  screenshot upload: type/size checks, downscale to 1024 px JPEG, preview, samples
 app/ops/layout.js            ops shell with the "Demo console, synthetic data only" banner
 app/ops/page.js              ops case queue
 app/ops/[id]/page.js         case detail, decision buttons and case summary draft
 app/ops/format.js            time and amount formatting for the ops pages
-app/evaluation/page.js       evaluation results page (reads data/eval-results.json)
+app/evaluation/page.js       evaluation results page (reads data/eval-results.json at build time)
 app/api/check/route.js       POST: run the pipeline, save the case, return the verdict
 app/api/cases/route.js       GET: list cases
 app/api/cases/[id]/route.js  GET one case, PATCH status (confirm hold / release)
@@ -57,7 +58,9 @@ lib/gemini.js                client setup, generateJson(prompt, schema, parts, o
 lib/usage.js                 token counts, cost estimate and running total
 lib/limits.js                size limits and rate limits (cost guardrails)
 lib/rateLimit.js             per-IP per-minute limit (memory) and global daily limit (Firestore)
-lib/http.js                  readJsonBody with the 50 KB limit
+lib/http.js                  readJsonBody with a body size limit (50 KB text, 700 KB with a screenshot)
+lib/image.js                 server-side screenshot checks (PNG/JPEG/WebP by magic bytes)
+lib/currency.js              currencies (INR, IDR, SGD, USD), default per language, amount formatting
 lib/bigquery.js              payee lookup (100 MB max billed, 5 s timeout)
 lib/firestore.js             cases, reviewer decisions, daily run counter
 lib/labels.js                verdict card text in four languages; ops labels
@@ -65,6 +68,7 @@ lib/highlight.js             highlights quoted evidence in the conversation
 lib/caseSummary.js           case summary prompt and call
 lib/demoScenarios.js         the three demo conversations
 lib/demoResults.js           saved demo results served when a limit is hit
+lib/pipeline/transcribe.js   screenshots only: Gemini reads the chat image into lines
 lib/pipeline/mask.js         mask account/card numbers, phones, emails, OTP-like codes
 lib/pipeline/evidenceReader.js
 lib/pipeline/payeeRisk.js    BigQuery lookup with local fallback
@@ -74,9 +78,12 @@ lib/pipeline/runCheck.js     orchestrates the steps; independent steps run with 
 data/typologies.json         12 scam types
 data/payees-seed.json        300 synthetic payees (BigQuery seed and fallback)
 data/demo-results.json       saved demo results (npm run save-demos)
-data/scenarios.json          about 150 labelled scenarios
-data/eval-results.json       written by scripts/eval.js
-scripts/eval.js, scripts/redteam.js
+data/scenarios.json          62 labelled scenarios (written by the builders; do not edit)
+data/eval-results.json       written by scripts/eval.js (data/eval-cache.json is git-ignored)
+public/samples/*.png         three synthetic chat screenshots (npm run make-samples)
+scripts/eval.js              npm run eval (metrics in scripts/evalMetrics.js)
+scripts/redteam.js           npm run redteam (to do)
+scripts/make-sample-screenshots.js  npm run make-samples
 scripts/seed-bigquery.js     npm run seed
 scripts/generate-payees.js   regenerates data/payees-seed.json
 scripts/save-demo-results.js npm run save-demos
@@ -90,6 +97,7 @@ Every Gemini step uses structured JSON output with a schema, and results are val
 - Evidence Reader returns: `{ language, claimed_identity, claims[], urgency_cues[], payment_instructions, red_flags: [{ quote, why }] }`
 - Payee Risk returns: `{ payee_id, account_age_days, prior_reports, flags[], risk_level: "low"|"medium"|"high" }`
 - Pattern Matcher returns: `{ matches: [{ type_id, confidence: 0-1, rationale }] }`
+- Transcribe (screenshots only) returns: `{ is_conversation, language, lines: [{ speaker, text }], notes }`
 - Decision returns: `{ verdict: "PROCEED"|"BE_CAREFUL"|"HOLD", score: 0-100, reasons: [{ text, evidence_quote, source }], next_steps[], explanation_language, explanation }`
 
 Rules for the Decision step: every reason must quote evidence from the conversation or name the payee signal it came from. Genuine payments (a real landlord, a known supplier, a friend repaying) must be allowed to pass. Prefer BE_CAREFUL over HOLD when evidence is thin. Write the explanation in the language the customer selected, in plain words, calm tone, no blame.
@@ -108,6 +116,8 @@ Rules for the Decision step: every reason must quote evidence from the conversat
 1. Text-only vertical slice: customer page, /api/check, three Gemini steps, mocked payee data, deployed on Cloud Run
 2. BigQuery payee risk, Firestore cases, ops console, multilingual output
 3. Evaluation harness and evaluation page, screenshot input, red-team script, UI polish; voice note input only if time allows
+   - Done: evaluation harness and page (full 62-scenario run pending); Stage 3b screenshot input and currency
+   - To do: full evaluation run, red-team script, UI polish
 4. Freeze: README, clean-browser test, final deploy
 
 Do only the stage you are asked to do. At the end of each stage, run the app, test it, summarise what works and what does not, and list anything you left out.
