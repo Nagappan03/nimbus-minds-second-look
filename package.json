@@ -9,7 +9,8 @@
     "mask-demo": "node scripts/mask-demo.js",
     "save-demos": "node --env-file=.env.local scripts/save-demo-results.js",
     "seed": "node --env-file=.env.local scripts/seed-bigquery.js",
-    "eval": "node --env-file=.env.local scripts/eval.js"
+    "eval": "node --env-file=.env.local scripts/eval.js",
+    "make-samples": "node scripts/make-sample-screenshots.js"
   },
   "dependencies": {
     "@google-cloud/bigquery": "^8.3.1",
