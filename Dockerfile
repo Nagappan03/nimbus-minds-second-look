@@ -23,6 +23,8 @@ ENV NODE_ENV=production \
     PORT=8080
 COPY --from=build --chown=node:node /app/.next/standalone ./
 COPY --from=build --chown=node:node /app/.next/static ./.next/static
+# Standalone output does not include public/ (sample screenshots); copy it next to server.js.
+COPY --from=build --chown=node:node /app/public ./public
 USER node
 EXPOSE 8080
 CMD ["node", "server.js"]

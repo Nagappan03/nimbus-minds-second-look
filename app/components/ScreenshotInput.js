@@ -78,7 +78,10 @@ export default function ScreenshotInput({ image, onImage, onSample, onError, dis
   async function loadSample(sample) {
     try {
       const res = await fetch(sample.file);
-      if (!res.ok) throw new Error("Could not load the sample screenshot.");
+      if (!res.ok) {
+        console.error(`Sample screenshot ${sample.file} failed: HTTP ${res.status} ${res.headers.get("content-type") || ""}`);
+        throw new Error("Could not load the sample screenshot.");
+      }
       const blob = await res.blob();
       await handleFile(new File([blob], sample.file.split("/").pop(), { type: blob.type }));
       onSample?.(sample);
