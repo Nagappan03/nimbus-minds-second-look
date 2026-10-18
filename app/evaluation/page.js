@@ -35,7 +35,7 @@ export default function EvaluationPage() {
       </header>
 
       <p className={styles.note}>
-        <strong>How to read this:</strong> {results?.scenarioCount ?? 62} synthetic scenarios written by the builders; results show
+        <strong>How to read this:</strong> {results ? `${results.scenarioCount} synthetic` : "Synthetic"} scenarios written by the builders; results show
         agreement with our own labels, not independent validation. Single model. No real customer data.
       </p>
 

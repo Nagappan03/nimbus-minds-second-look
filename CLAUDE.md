@@ -78,7 +78,7 @@ lib/pipeline/runCheck.js     orchestrates the steps; independent steps run with 
 data/typologies.json         12 scam types
 data/payees-seed.json        300 synthetic payees (BigQuery seed and fallback)
 data/demo-results.json       saved demo results (npm run save-demos)
-data/scenarios.json          62 labelled scenarios (written by the builders; do not edit)
+data/scenarios.json          labelled scenarios (written by the builders; do not edit)
 data/eval-results.json       written by scripts/eval.js (data/eval-cache.json is git-ignored)
 public/samples/*.png         three synthetic chat screenshots (npm run make-samples)
 scripts/eval.js              npm run eval (metrics in scripts/evalMetrics.js)
@@ -116,7 +116,7 @@ Rules for the Decision step: every reason must quote evidence from the conversat
 1. Text-only vertical slice: customer page, /api/check, three Gemini steps, mocked payee data, deployed on Cloud Run
 2. BigQuery payee risk, Firestore cases, ops console, multilingual output
 3. Evaluation harness and evaluation page, screenshot input, red-team script, UI polish; voice note input only if time allows
-   - Done: evaluation harness and page (full 62-scenario run pending); Stage 3b screenshot input and currency
+   - Done: evaluation harness and page (full run pending); Stage 3b screenshot input and currency
    - To do: full evaluation run, red-team script, UI polish
 4. Freeze: README, clean-browser test, final deploy
 
