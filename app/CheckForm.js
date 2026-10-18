@@ -5,6 +5,7 @@ import Link from "next/link";
 import styles from "./page.module.css";
 import { DEMO_SCENARIOS } from "@/lib/demoScenarios";
 import VerdictCard from "./components/VerdictCard";
+import ScreenshotInput from "./components/ScreenshotInput";
 import { labelsFor } from "@/lib/labels";
 import { CURRENCIES, defaultCurrency } from "@/lib/currency";
 
@@ -24,6 +25,8 @@ export default function CheckForm({ payees }) {
   const [error, setError] = useState(null);
   const [limited, setLimited] = useState(null); // { message, examples } when a rate limit is hit
   const [currencyTouched, setCurrencyTouched] = useState(false);
+  const [mode, setMode] = useState("text"); // text | image
+  const [image, setImage] = useState(null); // prepared JPEG { mimeType, data, previewUrl, ... }
 
   const update = (field) => (e) => setForm({ ...form, [field]: e.target.value });
 
@@ -40,19 +43,40 @@ export default function CheckForm({ payees }) {
 
   function loadDemo(demo) {
     setForm({ ...form, payeeId: demo.payeeId, amount: demo.amount, currency: demo.currency, conversation: demo.conversation });
+    setMode("text");
     setStatus("idle");
     setResult(null);
   }
 
+  // A sample screenshot also fills in the payee and amount of the matching demo.
+  function loadSampleDetails(sample) {
+    const demo = DEMO_SCENARIOS.find((d) => d.id === sample.id);
+    if (demo) setForm((f) => ({ ...f, payeeId: demo.payeeId, amount: demo.amount, currency: demo.currency }));
+    setStatus("idle");
+    setResult(null);
+  }
+
+  function showInputError(message) {
+    setError(message);
+    setStatus("error");
+  }
+
+  function requestBody() {
+    if (mode === "text") return form;
+    const { conversation, ...rest } = form;
+    return { ...rest, image: { mimeType: image.mimeType, data: image.data } };
+  }
+
   async function runCheck(e) {
     e?.preventDefault();
+    if (mode === "image" && !image) return showInputError("Please add a screenshot first, or switch to Paste text.");
     setStatus("loading");
     setError(null);
     try {
       const res = await fetch("/api/check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(requestBody()),
       });
       const data = await res.json().catch(() => ({ error: "The server sent an unreadable reply." }));
       if (res.status === 429 && data.examples) {
@@ -120,10 +144,29 @@ export default function CheckForm({ payees }) {
           </span>
         </label>
 
-        <label>
-          Conversation
-          <textarea rows={8} value={form.conversation} onChange={update("conversation")} placeholder="Paste the chat or message here" required />
-        </label>
+        <div className={styles.field}>
+          <span className={styles.fieldLabel}>Conversation</span>
+          <div className={styles.toggle} role="group" aria-label="How to add the conversation">
+            <button type="button" aria-pressed={mode === "text"} onClick={() => setMode("text")} disabled={loading}>
+              Paste text
+            </button>
+            <button type="button" aria-pressed={mode === "image"} onClick={() => setMode("image")} disabled={loading}>
+              Upload screenshot
+            </button>
+          </div>
+          {mode === "text" ? (
+            <textarea
+              aria-label="Conversation"
+              rows={8}
+              value={form.conversation}
+              onChange={update("conversation")}
+              placeholder="Paste the chat or message here"
+              required
+            />
+          ) : (
+            <ScreenshotInput image={image} onImage={setImage} onSample={loadSampleDetails} onError={showInputError} disabled={loading} />
+          )}
+        </div>
 
         <label>
           Explain the result in
@@ -148,7 +191,7 @@ export default function CheckForm({ payees }) {
       {loading && (
         <div className={styles.loading} role="status">
           <span className={styles.spinner} aria-hidden="true" />
-          Reading the conversation and checking the payee…
+          {mode === "image" ? "Reading your screenshot and checking the payee…" : "Reading the conversation and checking the payee…"}
         </div>
       )}
 
@@ -175,6 +218,14 @@ export default function CheckForm({ payees }) {
       )}
 
       {status === "done" && result && <VerdictCard result={result} />}
+
+      {status === "done" && result?.transcript && (
+        <details className={styles.transcript}>
+          <summary>What we read from your screenshot</summary>
+          <p className={styles.privacy}>Personal details are masked. The image itself is not stored.</p>
+          <pre>{result.transcript}</pre>
+        </details>
+      )}
 
       <footer className={styles.footer}>
         <Link href="/ops">Bank staff view</Link>

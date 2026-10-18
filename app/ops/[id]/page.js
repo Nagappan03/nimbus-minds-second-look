@@ -10,7 +10,7 @@ import { highlightSegments } from "@/lib/highlight";
 import { LANGUAGE_NAMES, STATUS_LABELS, VERDICT_LABELS } from "@/lib/labels";
 import { formatAmount, formatTime } from "../format";
 
-const STEP_NAMES = { mask: "Masking", evidence: "Evidence reader", payee: "Payee risk", patterns: "Pattern matcher", decide: "Decision", total: "Total" };
+const STEP_NAMES = { transcribe: "Screenshot transcription", mask: "Masking", evidence: "Evidence reader", payee: "Payee risk", patterns: "Pattern matcher", decide: "Decision", total: "Total" };
 const typologyName = (id) => typologies.find((t) => t.id === id)?.name || id;
 
 export default function CaseDetail() {
@@ -54,7 +54,7 @@ export default function CaseDetail() {
       </Link>
       <CaseHeader c={c} />
       <Reasons reasons={c.decision.reasons} />
-      <Conversation text={c.conversation_masked} reasons={c.decision.reasons} truncated={c.truncated} />
+      <Conversation text={c.conversation_masked} reasons={c.decision.reasons} truncated={c.truncated} source={c.source} />
       <PayeeSignals payee={c.payee_signals} />
       <Patterns matches={c.patterns?.matches || []} />
       <section className={styles.section}>
@@ -133,11 +133,14 @@ function Reasons({ reasons }) {
   );
 }
 
-function Conversation({ text, reasons, truncated }) {
+function Conversation({ text, reasons, truncated, source }) {
   const quotes = reasons.filter((r) => r.source === "conversation").map((r) => r.evidence_quote);
   return (
     <section className={styles.section}>
-      <h2>Conversation (masked)</h2>
+      <h2>
+        {source === "screenshot" ? "Transcript read from the screenshot (masked)" : "Conversation (masked)"}
+        <span className={`${styles.badge} ${styles.badgePayee}`}>Source: {source === "screenshot" ? "screenshot" : "pasted text"}</span>
+      </h2>
       <p className={styles.muted}>
         Account numbers, phones, emails and codes were masked before review. Quoted evidence is highlighted.
         {truncated && " Only the first 6,000 characters were checked."}
