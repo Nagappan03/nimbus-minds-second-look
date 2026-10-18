@@ -8,9 +8,9 @@ import { IMAGE_TYPES, MAX_IMAGE_PX, MAX_UPLOAD_FILE_BYTES } from "@/lib/limits";
 const TARGET_BYTES = 450 * 1024;
 
 export const SAMPLE_SCREENSHOTS = [
-  { id: "rent", label: "Rent chat", file: "/samples/rent.png" },
-  { id: "authority", label: "Officer on a call", file: "/samples/officer.png" },
-  { id: "investment", label: "Investment group", file: "/samples/investment.png" },
+  { id: "rent", label: "Rent screenshot", file: "/samples/rent.png" },
+  { id: "authority", label: "Officer screenshot", file: "/samples/officer.png" },
+  { id: "investment", label: "Investment screenshot", file: "/samples/investment.png" },
 ];
 
 function toBlob(canvas, quality) {

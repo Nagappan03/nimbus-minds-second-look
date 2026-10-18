@@ -5,7 +5,8 @@
   font-weight: 400;
 }
 
-.drop {
+/* ".box .drop" so it outranks the form's ".card label" (bold) rule. */
+.box .drop {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -14,7 +15,7 @@
   border-radius: 10px;
   background: #fafbfc;
   cursor: pointer;
-  font-weight: 400; /* the form's label style is bold */
+  font-weight: 400;
 }
 
 .drop:hover {
