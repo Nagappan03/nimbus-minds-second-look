@@ -1,0 +1,227 @@
+{
+  "generatedAt": "2026-10-18T06:41:38.270Z",
+  "model": "gemini-3.1-flash-lite",
+  "promptVersion": "b68716cced57",
+  "scenarioCount": 5,
+  "metrics": {
+    "answered": 5,
+    "error_count": 0,
+    "exact_match_rate": 1,
+    "acceptable_rate": 1,
+    "scam_catch_rate": 1,
+    "hold_precision_on_scams": 1,
+    "false_hold_rate": null,
+    "false_alarm_rate": null,
+    "quote_verified_rate": 1,
+    "high_risk_payee_proceed_count": 0,
+    "high_risk_payee_count": 3,
+    "red_team_pass_rate": null,
+    "red_team_count": 0,
+    "counts": {
+      "expected_hold": 5,
+      "expected_proceed": 0
+    },
+    "confusion_matrix": {
+      "PROCEED": {
+        "PROCEED": 0,
+        "BE_CAREFUL": 0,
+        "HOLD": 0
+      },
+      "BE_CAREFUL": {
+        "PROCEED": 0,
+        "BE_CAREFUL": 0,
+        "HOLD": 0
+      },
+      "HOLD": {
+        "PROCEED": 0,
+        "BE_CAREFUL": 0,
+        "HOLD": 5
+      }
+    },
+    "by_language": {
+      "en": {
+        "count": 5,
+        "ok": 5,
+        "acceptable_rate": 1
+      }
+    },
+    "latency_ms": {
+      "median": 3624,
+      "p95": 4540
+    },
+    "tokens": {
+      "input": 15548,
+      "output": 4064,
+      "cost_usd": 0.01
+    },
+    "cost_per_check_usd": 0.002,
+    "failures": []
+  },
+  "rows": [
+    {
+      "id": "H01",
+      "language": "en",
+      "payee_risk": "high",
+      "payee_id": "PAYEE-1004",
+      "payee_source": "bigquery",
+      "scam_type": "safe_account_impersonation",
+      "red_team": false,
+      "expected": "HOLD",
+      "acceptable": [
+        "HOLD",
+        "BE_CAREFUL"
+      ],
+      "verdict": "HOLD",
+      "score": 100,
+      "ok": true,
+      "exact": true,
+      "quote_verified_count": 3,
+      "conversation_reason_count": 3,
+      "reason_count": 4,
+      "latencyMs": 4540,
+      "tokens": {
+        "input": 3168,
+        "output": 800,
+        "cost_usd": 0.001992
+      },
+      "first_reason": {
+        "text": "You are being asked to move your money to a 'safe account', which is a common tactic used by scammers to steal funds.",
+        "quote": "move your balance to a safe account right now",
+        "source": "conversation"
+      },
+      "error": null
+    },
+    {
+      "id": "H02",
+      "language": "en",
+      "payee_risk": "high",
+      "payee_id": "PAYEE-1005",
+      "payee_source": "bigquery",
+      "scam_type": "investment_guaranteed_returns",
+      "red_team": false,
+      "expected": "HOLD",
+      "acceptable": [
+        "HOLD",
+        "BE_CAREFUL"
+      ],
+      "verdict": "HOLD",
+      "score": 95,
+      "ok": true,
+      "exact": true,
+      "quote_verified_count": 3,
+      "conversation_reason_count": 3,
+      "reason_count": 4,
+      "latencyMs": 4390,
+      "tokens": {
+        "input": 3130,
+        "output": 820,
+        "cost_usd": 0.002012
+      },
+      "first_reason": {
+        "text": "You are being asked to pay a 'tax' to unlock your own funds, which is a common sign of a scam.",
+        "quote": "to unlock withdrawal you must pay 40,000 as tax first",
+        "source": "conversation"
+      },
+      "error": null
+    },
+    {
+      "id": "H03",
+      "language": "en",
+      "payee_risk": "medium",
+      "payee_id": "PAYEE-1010",
+      "payee_source": "bigquery",
+      "scam_type": "romance_advance",
+      "red_team": false,
+      "expected": "HOLD",
+      "acceptable": [
+        "HOLD",
+        "BE_CAREFUL"
+      ],
+      "verdict": "HOLD",
+      "score": 95,
+      "ok": true,
+      "exact": true,
+      "quote_verified_count": 3,
+      "conversation_reason_count": 3,
+      "reason_count": 4,
+      "latencyMs": 3624,
+      "tokens": {
+        "input": 3166,
+        "output": 876,
+        "cost_usd": 0.002106
+      },
+      "first_reason": {
+        "text": "You are being asked to pay a customs fee for a gift from someone you have never met, which is a common sign of a scam.",
+        "quote": "I'm stuck at the airport. Customs is holding the gift box I sent you and wants a fee.",
+        "source": "conversation"
+      },
+      "error": null
+    },
+    {
+      "id": "H04",
+      "language": "en",
+      "payee_risk": "high",
+      "payee_id": "PAYEE-1006",
+      "payee_source": "bigquery",
+      "scam_type": "fake_job_fee",
+      "red_team": false,
+      "expected": "HOLD",
+      "acceptable": [
+        "HOLD",
+        "BE_CAREFUL"
+      ],
+      "verdict": "HOLD",
+      "score": 95,
+      "ok": true,
+      "exact": true,
+      "quote_verified_count": 2,
+      "conversation_reason_count": 2,
+      "reason_count": 4,
+      "latencyMs": 3466,
+      "tokens": {
+        "input": 3086,
+        "output": 779,
+        "cost_usd": 0.00194
+      },
+      "first_reason": {
+        "text": "You are being asked to pay upfront fees for a job, which is a common sign of a recruitment scam.",
+        "quote": "Pay a registration fee of Rs 2,500 to confirm your seat.",
+        "source": "conversation"
+      },
+      "error": null
+    },
+    {
+      "id": "H05",
+      "language": "en",
+      "payee_risk": "low",
+      "payee_id": "PAYEE-1001",
+      "payee_source": "bigquery",
+      "scam_type": "family_impersonation_new_number",
+      "red_team": false,
+      "expected": "HOLD",
+      "acceptable": [
+        "HOLD",
+        "BE_CAREFUL"
+      ],
+      "verdict": "HOLD",
+      "score": 95,
+      "ok": true,
+      "exact": true,
+      "quote_verified_count": 3,
+      "conversation_reason_count": 3,
+      "reason_count": 3,
+      "latencyMs": 3541,
+      "tokens": {
+        "input": 2998,
+        "output": 789,
+        "cost_usd": 0.001933
+      },
+      "first_reason": {
+        "text": "You are being asked to send a large sum of money to an account by someone claiming to be a family member who has suddenly changed their phone number.",
+        "quote": "Hi Dad, this is my new number",
+        "source": "conversation"
+      },
+      "error": null
+    }
+  ]
+}
