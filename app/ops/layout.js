@@ -15,9 +15,14 @@ export default function OpsLayout({ children }) {
         <Link href="/ops" className={styles.brand}>
           Second Look · Case review
         </Link>
-        <Link href="/" className={styles.headerLink}>
-          Customer page
-        </Link>
+        <nav className={styles.headerNav}>
+          <Link href="/evaluation" className={styles.headerLink}>
+            Evaluation
+          </Link>
+          <Link href="/" className={styles.headerLink}>
+            Customer page
+          </Link>
+        </nav>
       </header>
       <main className={styles.main}>{children}</main>
     </div>

@@ -156,6 +156,8 @@ export default function CheckForm({ payees }) {
 
       <footer className={styles.footer}>
         <Link href="/ops">Bank staff view</Link>
+        <span aria-hidden="true"> · </span>
+        <Link href="/evaluation">Evaluation</Link>
       </footer>
     </main>
   );

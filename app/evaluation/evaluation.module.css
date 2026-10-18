@@ -1,0 +1,175 @@
+.page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.nav {
+  display: flex;
+  gap: 14px;
+  font-size: 0.88rem;
+}
+
+.nav a {
+  color: var(--muted);
+}
+
+.note {
+  margin: 14px 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fdf4e3;
+  border: 1px solid #efd9a8;
+  font-size: 0.92rem;
+}
+
+.meta,
+.muted {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--muted);
+  background: var(--card);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+}
+
+/* Headline tiles */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.tileLabel {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.tileValue {
+  font-size: 1.6rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.tileSub {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+/* Sections and tables */
+.section {
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.section h2 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+}
+
+.section p {
+  margin: 0 0 8px;
+}
+
+.kv {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px 20px;
+  margin: 0;
+}
+
+.kv dt {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.kv dd {
+  margin: 2px 0 0;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid #eef0f4;
+  vertical-align: top;
+}
+
+.table thead th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.num {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.diagonal {
+  font-weight: 700;
+  background: #eaf6ef;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.subtle {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.quote {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}

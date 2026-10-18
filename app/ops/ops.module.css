@@ -30,6 +30,11 @@
   text-decoration: none;
 }
 
+.headerNav {
+  display: flex;
+  gap: 14px;
+}
+
 .headerLink {
   font-size: 0.88rem;
   color: var(--muted);
